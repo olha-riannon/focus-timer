@@ -1,0 +1,211 @@
+.shell {
+  max-width: var(--layout-max);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.shell__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.shell__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shell__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+}
+
+.shell__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--line-tight);
+  letter-spacing: var(--letter-tight);
+  color: var(--fg-primary);
+}
+
+.shell__lede {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--fg-secondary);
+  font-size: var(--text-base);
+  line-height: var(--line-normal);
+}
+
+.shell__theme-switch {
+  display: inline-flex;
+  padding: var(--space-1);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  gap: var(--space-1);
+}
+
+.theme-pill {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--fg-secondary);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.theme-pill:hover {
+  color: var(--fg-primary);
+}
+
+.theme-pill[data-active='true'] {
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-pill:active {
+  transform: scale(0.97);
+}
+
+.palette {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.palette__card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.palette__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-wider);
+  color: var(--fg-tertiary);
+}
+
+.palette__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.palette__row--text {
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 96px;
+}
+
+.swatch__chip {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.swatch__name {
+  font-size: var(--text-sm);
+  color: var(--fg-primary);
+}
+
+.swatch__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--fg-tertiary);
+}
+
+.type-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--fg-primary);
+}
+
+.radius-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tile__face {
+  display: block;
+  width: 56px;
+  height: 56px;
+  background: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.tile__label {
+  font-size: var(--text-xs);
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+}
+
+.motion-note {
+  margin: 0;
+  color: var(--fg-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--line-relaxed);
+}
+
+.motion-note code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-2);
+  color: var(--fg-primary);
+}
+
+.shell__footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--fg-tertiary);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-4);
+}
+
+.shell__footer strong {
+  color: var(--fg-secondary);
+  font-weight: var(--weight-medium);
+}

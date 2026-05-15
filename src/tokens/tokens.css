@@ -1,0 +1,232 @@
+/*
+ * Design tokens for Focus Timer.
+ *
+ * Single source of truth. Every color / spacing / radius / duration / easing
+ * used anywhere in the app MUST come from here. Magic numbers in component
+ * styles are a bug, not a feature.
+ *
+ * Theming strategy:
+ *   - `:root` defaults to light values.
+ *   - `@media (prefers-color-scheme: dark)` flips to dark IF the user has not
+ *     explicitly chosen a theme (no `[data-theme]` attribute).
+ *   - `:root[data-theme="dark"]` / `[data-theme="light"]` are explicit user
+ *     choices and override the system preference.
+ */
+
+:root {
+  /* — Color · light theme — */
+  --bg-base: hsl(220 14% 99%);
+  --bg-surface: hsl(0 0% 100%);
+  --bg-surface-2: hsl(220 12% 97%);
+  --bg-surface-3: hsl(220 10% 94%);
+  --bg-overlay: hsl(220 14% 8% / 0.32);
+
+  --fg-primary: hsl(220 14% 10%);
+  --fg-secondary: hsl(220 8% 36%);
+  --fg-tertiary: hsl(220 6% 55%);
+  --fg-disabled: hsl(220 6% 72%);
+  --fg-on-accent: hsl(0 0% 100%);
+
+  --border-subtle: hsl(220 12% 92%);
+  --border-default: hsl(220 12% 86%);
+  --border-strong: hsl(220 10% 72%);
+
+  --accent: hsl(258 78% 58%);
+  --accent-hover: hsl(258 78% 52%);
+  --accent-active: hsl(258 78% 46%);
+  --accent-soft: hsl(258 80% 96%);
+  --accent-ring: hsl(258 78% 58% / 0.32);
+
+  --phase-work: hsl(258 78% 58%);
+  --phase-work-soft: hsl(258 80% 96%);
+  --phase-break-short: hsl(168 70% 42%);
+  --phase-break-short-soft: hsl(168 60% 94%);
+  --phase-break-long: hsl(28 90% 55%);
+  --phase-break-long-soft: hsl(28 90% 95%);
+
+  --danger: hsl(0 72% 52%);
+  --danger-soft: hsl(0 80% 96%);
+  --success: hsl(150 60% 40%);
+  --warning: hsl(38 92% 50%);
+
+  /* — Shadow · light — */
+  --shadow-sm: 0 1px 2px hsl(220 14% 10% / 0.04), 0 1px 1px hsl(220 14% 10% / 0.03);
+  --shadow-md: 0 4px 12px hsl(220 14% 10% / 0.08), 0 2px 4px hsl(220 14% 10% / 0.04);
+  --shadow-lg: 0 12px 32px hsl(220 14% 10% / 0.12), 0 4px 8px hsl(220 14% 10% / 0.06);
+  --shadow-ring: 0 0 0 3px var(--accent-ring);
+
+  /* — Spacing · 4 px base, geometric — */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* — Radius — */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /* — Typography — */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-display: var(--font-sans);
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 40px;
+  --text-display: 84px;
+
+  --line-tight: 1.1;
+  --line-snug: 1.25;
+  --line-normal: 1.45;
+  --line-relaxed: 1.6;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --letter-tight: -0.02em;
+  --letter-normal: 0;
+  --letter-wide: 0.02em;
+  --letter-wider: 0.06em;
+
+  /* — Motion — */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
+  --duration-slowest: 700ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+
+  /* — Layout — */
+  --layout-max: 920px;
+  --ring-size: min(60vw, 420px);
+  --ring-stroke: 14px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-base: hsl(225 12% 7%);
+    --bg-surface: hsl(225 11% 10%);
+    --bg-surface-2: hsl(225 10% 13%);
+    --bg-surface-3: hsl(225 9% 17%);
+    --bg-overlay: hsl(225 14% 4% / 0.6);
+
+    --fg-primary: hsl(220 14% 96%);
+    --fg-secondary: hsl(220 8% 72%);
+    --fg-tertiary: hsl(220 6% 52%);
+    --fg-disabled: hsl(220 6% 36%);
+    --fg-on-accent: hsl(220 14% 8%);
+
+    --border-subtle: hsl(225 10% 18%);
+    --border-default: hsl(225 9% 24%);
+    --border-strong: hsl(225 8% 36%);
+
+    --accent: hsl(258 88% 70%);
+    --accent-hover: hsl(258 88% 75%);
+    --accent-active: hsl(258 80% 64%);
+    --accent-soft: hsl(258 40% 20%);
+    --accent-ring: hsl(258 88% 70% / 0.4);
+
+    --phase-work: hsl(258 88% 70%);
+    --phase-work-soft: hsl(258 40% 20%);
+    --phase-break-short: hsl(168 70% 56%);
+    --phase-break-short-soft: hsl(168 40% 18%);
+    --phase-break-long: hsl(28 95% 64%);
+    --phase-break-long-soft: hsl(28 50% 20%);
+
+    --danger: hsl(0 78% 64%);
+    --danger-soft: hsl(0 40% 20%);
+    --success: hsl(150 64% 56%);
+    --warning: hsl(38 92% 60%);
+
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4), 0 1px 1px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 6px 16px hsl(0 0% 0% / 0.5), 0 2px 4px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.55), 0 4px 8px hsl(0 0% 0% / 0.35);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg-base: hsl(225 12% 7%);
+  --bg-surface: hsl(225 11% 10%);
+  --bg-surface-2: hsl(225 10% 13%);
+  --bg-surface-3: hsl(225 9% 17%);
+  --bg-overlay: hsl(225 14% 4% / 0.6);
+
+  --fg-primary: hsl(220 14% 96%);
+  --fg-secondary: hsl(220 8% 72%);
+  --fg-tertiary: hsl(220 6% 52%);
+  --fg-disabled: hsl(220 6% 36%);
+  --fg-on-accent: hsl(220 14% 8%);
+
+  --border-subtle: hsl(225 10% 18%);
+  --border-default: hsl(225 9% 24%);
+  --border-strong: hsl(225 8% 36%);
+
+  --accent: hsl(258 88% 70%);
+  --accent-hover: hsl(258 88% 75%);
+  --accent-active: hsl(258 80% 64%);
+  --accent-soft: hsl(258 40% 20%);
+  --accent-ring: hsl(258 88% 70% / 0.4);
+
+  --phase-work: hsl(258 88% 70%);
+  --phase-work-soft: hsl(258 40% 20%);
+  --phase-break-short: hsl(168 70% 56%);
+  --phase-break-short-soft: hsl(168 40% 18%);
+  --phase-break-long: hsl(28 95% 64%);
+  --phase-break-long-soft: hsl(28 50% 20%);
+
+  --danger: hsl(0 78% 64%);
+  --danger-soft: hsl(0 40% 20%);
+  --success: hsl(150 64% 56%);
+  --warning: hsl(38 92% 60%);
+
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4), 0 1px 1px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 6px 16px hsl(0 0% 0% / 0.5), 0 2px 4px hsl(0 0% 0% / 0.3);
+  --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.55), 0 4px 8px hsl(0 0% 0% / 0.35);
+
+  color-scheme: dark;
+}
+
+/* Honour user contrast preference — drop atmospheric effects, strengthen borders. */
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: var(--border-strong);
+    --border-default: var(--border-strong);
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+  }
+}
+
+/* Honour reduced motion — collapse all durations to instant. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-slowest: 0ms;
+  }
+}

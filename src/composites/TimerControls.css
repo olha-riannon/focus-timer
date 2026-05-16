@@ -1,0 +1,111 @@
+.timer-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hud-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--letter-widest);
+  text-transform: uppercase;
+  background: var(--bg-surface);
+  border: var(--border-hair) solid var(--border-default);
+  color: var(--fg-secondary);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.hud-button::before,
+.hud-button::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--accent);
+  border-style: solid;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.hud-button::before {
+  top: -1px;
+  left: -1px;
+  border-width: var(--border-hair) 0 0 var(--border-hair);
+}
+
+.hud-button::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 var(--border-hair) var(--border-hair) 0;
+}
+
+.hud-button:hover {
+  color: var(--fg-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-surface-2);
+}
+
+.hud-button:hover::before,
+.hud-button:hover::after {
+  opacity: 1;
+}
+
+.hud-button:active {
+  transform: scale(0.97);
+}
+
+.hud-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hud-button--secondary {
+  color: var(--fg-tertiary);
+}
+
+.hud-button--primary {
+  padding: var(--space-3) var(--space-7);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow:
+    var(--glow-accent),
+    inset 0 0 16px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.hud-button--primary::before,
+.hud-button--primary::after {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.hud-button--primary:hover {
+  background: color-mix(in srgb, var(--accent-soft) 60%, var(--bg-surface));
+  border-color: var(--accent-hover);
+  color: var(--accent-hover);
+  box-shadow:
+    var(--glow-accent-strong),
+    inset 0 0 24px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.hud-button--primary:active {
+  transform: scale(0.96);
+}
+
+.hud-button__label {
+  position: relative;
+}

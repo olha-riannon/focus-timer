@@ -1,11 +1,52 @@
 import { useState } from 'react';
+import { TimerRing, type Phase } from './composites/TimerRing.tsx';
+import { TimerControls } from './composites/TimerControls.tsx';
 import { applyTheme, storeTheme, getStoredTheme, type Theme } from './tokens/theme.ts';
 import './App.css';
 
 const themes: Theme[] = ['light', 'dark', 'system'];
+const phases: Phase[] = ['work', 'short-break', 'long-break'];
+
+const totalsByPhase: Record<Phase, number> = {
+  work: 25 * 60,
+  'short-break': 5 * 60,
+  'long-break': 15 * 60,
+};
+
+const phaseLabel: Record<Phase, string> = {
+  work: 'work',
+  'short-break': 'short break',
+  'long-break': 'long break',
+};
+
+const nextPhase = (current: Phase): Phase => {
+  if (current === 'work') return 'short-break';
+  if (current === 'short-break') return 'long-break';
+  return 'work';
+};
+
+function SignalBars({ level }: { level: number }) {
+  return (
+    <span className="hud-signal" aria-hidden>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span
+          key={i}
+          className="hud-signal__bar"
+          data-active={i <= level}
+          style={{ height: `${4 + i * 2}px` }}
+        />
+      ))}
+    </span>
+  );
+}
 
 export function App() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
+  const [phase, setPhase] = useState<Phase>('work');
+  const [running, setRunning] = useState(false);
+
+  const total = totalsByPhase[phase];
+  const remaining = Math.floor(total * 0.6);
 
   const handleTheme = (next: Theme) => {
     setTheme(next);
@@ -15,20 +56,110 @@ export function App() {
 
   return (
     <main className="shell">
-      <header className="shell__header">
-        <div className="shell__heading">
-          <span className="shell__eyebrow">Focus Timer</span>
-          <h1 className="shell__title">Tokens sanity check</h1>
-          <p className="shell__lede">
-            Палітра, типографія, ритми. Темну й світлу теми перемикай нижче — або через системні налаштування.
-          </p>
+      <header className="shell__hud-top">
+        <div className="hud-cluster">
+          <span className="hud-brand">[ PIBOX ]</span>
+          <span className="hud-divider" aria-hidden>/</span>
+          <span className="hud-meta">NEURAL_DIVE</span>
+          <span className="hud-divider" aria-hidden>·</span>
+          <span className="hud-meta hud-meta--dim">v0.7</span>
+        </div>
+        <div className="hud-cluster hud-cluster--right">
+          <span className="hud-meta">SUBNET</span>
+          <span className="hud-value">0xA7B3</span>
+          <span className="hud-divider" aria-hidden>·</span>
+          <span className="hud-meta">SIGNAL</span>
+          <SignalBars level={4} />
+          <span className="hud-divider" aria-hidden>·</span>
+          <span className="hud-status hud-status--ok">UPLINK STABLE</span>
+        </div>
+      </header>
+
+      <section className="shell__stage">
+        <span className="hud-corner hud-corner--tl" aria-hidden />
+        <span className="hud-corner hud-corner--tr" aria-hidden />
+        <span className="hud-corner hud-corner--bl" aria-hidden />
+        <span className="hud-corner hud-corner--br" aria-hidden />
+
+        <div className="hud-annotation hud-annotation--top-left">
+          <span className="hud-annotation__bracket">&lt;</span>
+          <span className="hud-annotation__label">PHASE</span>
+          <span className="hud-annotation__value" data-phase={phase}>
+            {phaseLabel[phase].toUpperCase()}
+          </span>
+        </div>
+        <div className="hud-annotation hud-annotation--top-right">
+          <span className="hud-annotation__label">CYCLE</span>
+          <span className="hud-annotation__value">02 / 04</span>
+          <span className="hud-annotation__bracket">&gt;</span>
+        </div>
+        <div className="hud-annotation hud-annotation--bottom-left">
+          <span className="hud-annotation__bracket">&lt;</span>
+          <span className="hud-annotation__label">BUFFER</span>
+          <span className="hud-annotation__value">0x3F2C</span>
+        </div>
+        <div className="hud-annotation hud-annotation--bottom-right">
+          <span className="hud-annotation__label">PING</span>
+          <span className="hud-annotation__value">12 ms</span>
+          <span className="hud-annotation__bracket">&gt;</span>
+        </div>
+
+        <TimerRing
+          phase={phase}
+          remainingSeconds={remaining}
+          totalSeconds={total}
+          sessionIndex={2}
+          sessionsPerCycle={4}
+        />
+
+        <TimerControls
+          running={running}
+          onToggle={() => setRunning((v) => !v)}
+          onReset={() => setRunning(false)}
+          onSkip={() => setPhase(nextPhase)}
+        />
+
+        <div className="shell__phase-switch" role="group" aria-label="Phase preview">
+          {phases.map((value) => (
+            <button
+              key={value}
+              type="button"
+              className="hud-pill"
+              data-phase={value}
+              data-active={value === phase}
+              aria-pressed={value === phase}
+              onClick={() => setPhase(value)}
+            >
+              {phaseLabel[value]}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <footer className="shell__hud-bottom">
+        <div className="hud-log" aria-label="System log">
+          <div className="hud-log__row">
+            <span className="hud-log__prefix" aria-hidden>&gt;</span>
+            <span className="hud-log__text">neural link established</span>
+            <span className="hud-log__time">t+00.01</span>
+          </div>
+          <div className="hud-log__row">
+            <span className="hud-log__prefix" aria-hidden>&gt;</span>
+            <span className="hud-log__text">subnet handshake ok</span>
+            <span className="hud-log__time">t+00.02</span>
+          </div>
+          <div className="hud-log__row hud-log__row--active">
+            <span className="hud-log__prefix" aria-hidden>&gt;</span>
+            <span className="hud-log__text">ready for dive</span>
+            <span className="hud-log__cursor" aria-hidden>▍</span>
+          </div>
         </div>
         <div className="shell__theme-switch" role="group" aria-label="Theme">
           {themes.map((value) => (
             <button
               key={value}
               type="button"
-              className="theme-pill"
+              className="hud-pill hud-pill--small"
               data-active={value === theme}
               aria-pressed={value === theme}
               onClick={() => handleTheme(value)}
@@ -37,99 +168,8 @@ export function App() {
             </button>
           ))}
         </div>
-      </header>
-
-      <section className="palette" aria-label="Color tokens">
-        <article className="palette__card">
-          <span className="palette__label">Surfaces</span>
-          <div className="palette__row">
-            <Swatch token="--bg-base" />
-            <Swatch token="--bg-surface" />
-            <Swatch token="--bg-surface-2" />
-            <Swatch token="--bg-surface-3" />
-          </div>
-        </article>
-
-        <article className="palette__card">
-          <span className="palette__label">Foreground</span>
-          <div className="palette__row palette__row--text">
-            <span style={{ color: 'var(--fg-primary)' }}>Primary text · 14/20</span>
-            <span style={{ color: 'var(--fg-secondary)' }}>Secondary copy · 14/20</span>
-            <span style={{ color: 'var(--fg-tertiary)' }}>Tertiary meta · 13/18</span>
-            <span style={{ color: 'var(--fg-disabled)' }}>Disabled hint · 13/18</span>
-          </div>
-        </article>
-
-        <article className="palette__card">
-          <span className="palette__label">Phase accents</span>
-          <div className="palette__row">
-            <Swatch token="--phase-work" label="Work" />
-            <Swatch token="--phase-break-short" label="Short break" />
-            <Swatch token="--phase-break-long" label="Long break" />
-            <Swatch token="--accent-soft" label="Soft tint" />
-          </div>
-        </article>
-
-        <article className="palette__card">
-          <span className="palette__label">Typography scale</span>
-          <div className="type-stack">
-            <span style={{ font: 'var(--weight-semibold) var(--text-display)/var(--line-tight) var(--font-display)', letterSpacing: 'var(--letter-tight)' }}>25:00</span>
-            <span style={{ font: 'var(--weight-medium) var(--text-2xl)/var(--line-tight) var(--font-display)', letterSpacing: 'var(--letter-tight)' }}>Display 40</span>
-            <span style={{ font: 'var(--weight-medium) var(--text-xl)/var(--line-snug) var(--font-display)', letterSpacing: 'var(--letter-tight)' }}>Title 28</span>
-            <span style={{ font: 'var(--weight-medium) var(--text-lg)/var(--line-snug) var(--font-sans)' }}>Subtitle 20</span>
-            <span style={{ font: 'var(--weight-regular) var(--text-md)/var(--line-normal) var(--font-sans)' }}>Body 16 · щоденний робочий розмір.</span>
-            <span style={{ font: 'var(--weight-regular) var(--text-base)/var(--line-normal) var(--font-sans)' }}>Default 14 · базовий UI-розмір.</span>
-            <span style={{ font: 'var(--weight-regular) var(--text-sm)/var(--line-normal) var(--font-sans)', color: 'var(--fg-secondary)' }}>Caption 13 · метадані рядків історії.</span>
-            <span style={{ font: 'var(--weight-medium) var(--text-xs)/var(--line-normal) var(--font-sans)', letterSpacing: 'var(--letter-wider)', textTransform: 'uppercase', color: 'var(--fg-tertiary)' }}>Eyebrow 11</span>
-          </div>
-        </article>
-
-        <article className="palette__card">
-          <span className="palette__label">Radius &amp; shadow</span>
-          <div className="radius-row">
-            <Tile radius="--radius-sm" label="sm" />
-            <Tile radius="--radius-md" label="md" />
-            <Tile radius="--radius-lg" label="lg" />
-            <Tile radius="--radius-xl" label="xl" />
-            <Tile radius="--radius-2xl" label="2xl" />
-          </div>
-        </article>
-
-        <article className="palette__card">
-          <span className="palette__label">Motion</span>
-          <p className="motion-note">
-            Будь-яка зміна стану рухається через токени тривалості (<code>--duration-fast</code>,
-            <code>--duration-base</code>, <code>--duration-slow</code>) і easing
-            (<code>--ease-out</code>, <code>--ease-spring</code>). При <code>prefers-reduced-motion</code>
-            тривалості падають у 0&nbsp;ms — рух щезає, але контент рендериться.
-          </p>
-        </article>
-      </section>
-
-      <footer className="shell__footer">
-        <span>Pibox · Focus Timer · scaffold</span>
-        <span>Поточна тема: <strong>{theme}</strong></span>
       </footer>
     </main>
-  );
-}
-
-function Swatch({ token, label }: { token: string; label?: string }) {
-  return (
-    <div className="swatch">
-      <span className="swatch__chip" style={{ background: `var(${token})` }} />
-      <span className="swatch__name">{label ?? token}</span>
-      <code className="swatch__code">{token}</code>
-    </div>
-  );
-}
-
-function Tile({ radius, label }: { radius: string; label: string }) {
-  return (
-    <div className="tile">
-      <span className="tile__face" style={{ borderRadius: `var(${radius})` }} />
-      <span className="tile__label">{label}</span>
-    </div>
   );
 }
 

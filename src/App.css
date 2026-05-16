@@ -113,6 +113,16 @@
   font-weight: var(--weight-medium);
   letter-spacing: 0;
   text-transform: none;
+  transition: text-shadow var(--duration-fast) var(--ease-out);
+}
+
+.hud-value[data-clickable='true'] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.hud-value[data-clickable='true']:hover {
+  text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 .hud-signal {
@@ -245,6 +255,31 @@
 }
 .hud-annotation__value[data-phase='long-break'] {
   color: var(--accent-tertiary);
+}
+
+.hud-annotation__value[data-clickable='true'] {
+  cursor: pointer;
+  user-select: none;
+  pointer-events: auto;
+  transition:
+    color var(--duration-base) var(--ease-out),
+    text-shadow var(--duration-fast) var(--ease-out);
+}
+
+.hud-annotation__value[data-clickable='true']:hover {
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 70%, transparent);
+}
+
+[data-flicker='true'] {
+  animation: hud-value-flicker var(--duration-base) ease-out 1;
+}
+
+@keyframes hud-value-flicker {
+  0% { opacity: 1; }
+  20% { opacity: 0.25; }
+  35% { opacity: 0.85; }
+  55% { opacity: 0.35; }
+  100% { opacity: 1; }
 }
 
 /* — Phase switch (HUD bracket-pills) — */
@@ -402,28 +437,37 @@
   text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
-.hud-log__text {
+.hud-log__event {
+  min-width: 22ch;
   color: var(--fg-secondary);
 }
+
+.hud-log__duration {
+  min-width: 5ch;
+  color: var(--fg-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-log__phase {
+  min-width: 5ch;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--letter-widest);
+  text-transform: uppercase;
+}
+
+.hud-log__phase[data-phase='work'] { color: var(--phase-work); }
+.hud-log__phase[data-phase='short-break'] { color: var(--accent-secondary); }
+.hud-log__phase[data-phase='long-break'] { color: var(--accent-tertiary); }
 
 .hud-log__time {
   margin-left: auto;
   color: var(--fg-disabled);
   letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
-.hud-log__row--active .hud-log__text {
+.hud-log__row--active .hud-log__event {
   color: var(--fg-primary);
-}
-
-.hud-log__cursor {
-  display: inline-block;
-  color: var(--accent);
-  animation: hud-cursor 1s steps(2) infinite;
-}
-
-@keyframes hud-cursor {
-  to { opacity: 0; }
 }
 
 .shell__theme-switch {

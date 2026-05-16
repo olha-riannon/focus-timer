@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { TimerRing, type Phase } from './composites/TimerRing.tsx';
 import { TimerControls } from './composites/TimerControls.tsx';
 import { applyTheme, storeTheme, getStoredTheme, type Theme } from './tokens/theme.ts';
 import './App.css';
+
+const LOG_ENTER_EXIT_EASE = [0.16, 1, 0.3, 1] as const;
 
 const themes: Theme[] = ['light', 'dark', 'system'];
 const phases: Phase[] = ['work', 'short-break', 'long-break'];
@@ -47,6 +50,42 @@ const cycleLinkStatus = (current: LinkStatus): LinkStatus => {
   const i = linkStatusOrder.indexOf(current);
   return linkStatusOrder[(i + 1) % linkStatusOrder.length] ?? 'stable';
 };
+
+interface SessionLogEntry {
+  id: number;
+  phase: Phase;
+  duration: number;
+  completedAt: string;
+}
+
+const eventVerbByPhase: Record<Phase, string> = {
+  work: 'neural dive complete',
+  'short-break': 'soft reset complete',
+  'long-break': 'cold shutdown complete',
+};
+
+const phaseShortLabel: Record<Phase, string> = {
+  work: 'WORK',
+  'short-break': 'SHORT',
+  'long-break': 'LONG',
+};
+
+const sampleSessionLog: SessionLogEntry[] = [
+  { id: 1, phase: 'work', duration: 25 * 60, completedAt: '14:32' },
+  { id: 2, phase: 'short-break', duration: 5 * 60, completedAt: '14:37' },
+  { id: 3, phase: 'work', duration: 25 * 60, completedAt: '15:02' },
+];
+
+const formatDuration = (seconds: number): string => {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
+
+const randomHex4 = (): string =>
+  Math.floor(Math.random() * 0x10000).toString(16).toUpperCase().padStart(4, '0');
+
+const randomPing = (): number => 8 + Math.floor(Math.random() * 30);
 
 function SignalBars({ level }: { level: number }) {
   return (
@@ -93,6 +132,16 @@ export function App() {
   const [glitching, setGlitching] = useState(false);
   const [linkStatus, setLinkStatus] = useState<LinkStatus>('stable');
 
+  const [subnetHex, setSubnetHex] = useState('A7B3');
+  const [bufferHex, setBufferHex] = useState('3F2C');
+  const [pingMs, setPingMs] = useState(12);
+
+  const [subnetFlicker, setSubnetFlicker] = useState(false);
+  const [bufferFlicker, setBufferFlicker] = useState(false);
+  const [pingFlicker, setPingFlicker] = useState(false);
+
+  const [sessionLog] = useState<SessionLogEntry[]>(sampleSessionLog);
+
   const total = totalsByPhase[phase];
   const remaining = Math.floor(total * 0.6);
 
@@ -109,6 +158,21 @@ export function App() {
 
   const handleLinkClick = () => {
     setLinkStatus((current) => cycleLinkStatus(current));
+  };
+
+  const randomizeSubnet = () => {
+    setSubnetHex(randomHex4());
+    setSubnetFlicker(true);
+  };
+
+  const randomizeBuffer = () => {
+    setBufferHex(randomHex4());
+    setBufferFlicker(true);
+  };
+
+  const randomizePing = () => {
+    setPingMs(randomPing());
+    setPingFlicker(true);
   };
 
   return (
@@ -131,7 +195,17 @@ export function App() {
         </div>
         <div className="hud-cluster hud-cluster--right">
           <span className="hud-meta">SUBNET</span>
-          <span className="hud-value">0xA7B3</span>
+          <button
+            type="button"
+            className="hud-value"
+            data-clickable="true"
+            data-flicker={subnetFlicker}
+            onClick={randomizeSubnet}
+            onAnimationEnd={() => setSubnetFlicker(false)}
+            aria-label="Regenerate subnet identifier"
+          >
+            0x{subnetHex}
+          </button>
           <span className="hud-divider" aria-hidden>·</span>
           <span className="hud-meta">SIGNAL</span>
           <SignalBars level={signalLevelByStatus[linkStatus]} />
@@ -169,11 +243,31 @@ export function App() {
         <div className="hud-annotation hud-annotation--bottom-left">
           <span className="hud-annotation__bracket">&lt;</span>
           <span className="hud-annotation__label">BUFFER</span>
-          <span className="hud-annotation__value">0x3F2C</span>
+          <button
+            type="button"
+            className="hud-annotation__value"
+            data-clickable="true"
+            data-flicker={bufferFlicker}
+            onClick={randomizeBuffer}
+            onAnimationEnd={() => setBufferFlicker(false)}
+            aria-label="Regenerate buffer reference"
+          >
+            0x{bufferHex}
+          </button>
         </div>
         <div className="hud-annotation hud-annotation--bottom-right">
           <span className="hud-annotation__label">PING</span>
-          <span className="hud-annotation__value">12 ms</span>
+          <button
+            type="button"
+            className="hud-annotation__value"
+            data-clickable="true"
+            data-flicker={pingFlicker}
+            onClick={randomizePing}
+            onAnimationEnd={() => setPingFlicker(false)}
+            aria-label="Ping subnet"
+          >
+            {pingMs} ms
+          </button>
           <span className="hud-annotation__bracket">&gt;</span>
         </div>
 
@@ -212,22 +306,31 @@ export function App() {
       </section>
 
       <footer className="shell__hud-bottom">
-        <div className="hud-log" aria-label="System log">
-          <div className="hud-log__row">
-            <span className="hud-log__prefix" aria-hidden>&gt;</span>
-            <span className="hud-log__text">neural link established</span>
-            <span className="hud-log__time">t+00.01</span>
-          </div>
-          <div className="hud-log__row">
-            <span className="hud-log__prefix" aria-hidden>&gt;</span>
-            <span className="hud-log__text">subnet handshake ok</span>
-            <span className="hud-log__time">t+00.02</span>
-          </div>
-          <div className="hud-log__row hud-log__row--active">
-            <span className="hud-log__prefix" aria-hidden>&gt;</span>
-            <span className="hud-log__text">ready for dive</span>
-            <span className="hud-log__cursor" aria-hidden>▍</span>
-          </div>
+        <div className="hud-log" role="log" aria-label="Session history">
+          <AnimatePresence initial mode="popLayout">
+            {sessionLog.map((entry, i) => {
+              const isLast = i === sessionLog.length - 1;
+              return (
+                <motion.div
+                  key={entry.id}
+                  layout
+                  initial={{ opacity: 0, y: 14, filter: 'blur(3px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -14, filter: 'blur(3px)' }}
+                  transition={{ duration: 0.42, ease: LOG_ENTER_EXIT_EASE }}
+                  className={`hud-log__row${isLast ? ' hud-log__row--active' : ''}`}
+                >
+                  <span className="hud-log__prefix" aria-hidden>&gt;</span>
+                  <span className="hud-log__event">{eventVerbByPhase[entry.phase]}</span>
+                  <span className="hud-log__duration">{formatDuration(entry.duration)}</span>
+                  <span className="hud-log__phase" data-phase={entry.phase}>
+                    {phaseShortLabel[entry.phase]}
+                  </span>
+                  <span className="hud-log__time">{entry.completedAt}</span>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
         <div className="shell__theme-switch" role="group" aria-label="Theme">
           {themes.map((value) => (

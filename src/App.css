@@ -69,7 +69,30 @@
   color: var(--accent);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--letter-widest);
+  text-transform: uppercase;
   text-shadow: 0 0 8px hsl(180 100% 56% / 0.5);
+  user-select: none;
+  transition: text-shadow var(--duration-fast) var(--ease-out);
+}
+
+.hud-brand:hover {
+  text-shadow: 0 0 12px hsl(180 100% 56% / 0.7);
+}
+
+.hud-brand--glitch {
+  animation: hud-glitch var(--duration-slowest) linear 1;
+}
+
+@keyframes hud-glitch {
+  0% { transform: translate(0, 0); color: var(--accent); text-shadow: 0 0 8px hsl(180 100% 56% / 0.5); }
+  10% { transform: translate(-2px, 1px); color: var(--accent-secondary); text-shadow: 2px 0 0 var(--accent), -2px 0 0 var(--accent-tertiary); }
+  22% { transform: translate(2px, -1px); color: var(--phase-work); text-shadow: -2px 0 0 var(--accent), 2px 0 0 var(--accent-secondary); }
+  35% { transform: translate(-1px, 0); color: var(--accent); text-shadow: 1px 0 0 var(--accent-tertiary); }
+  48% { transform: translate(1px, 1px); color: var(--accent-tertiary); text-shadow: 0 0 6px var(--accent); }
+  62% { transform: translate(-2px, -1px); color: var(--accent-secondary); }
+  76% { transform: translate(0, 1px); color: var(--phase-work); }
+  88% { transform: translate(1px, 0); color: var(--accent); }
+  100% { transform: translate(0, 0); color: var(--accent); text-shadow: 0 0 8px hsl(180 100% 56% / 0.5); }
 }
 
 .hud-divider {
@@ -113,8 +136,14 @@
 }
 
 .hud-status {
+  --status-color: var(--success);
   position: relative;
   padding-left: var(--space-4);
+  color: var(--status-color);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+  user-select: none;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .hud-status::before {
@@ -126,14 +155,17 @@
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--success);
-  box-shadow: 0 0 6px var(--success);
+  background: var(--status-color);
+  box-shadow: 0 0 6px var(--status-color);
   animation: hud-pulse var(--duration-slowest) var(--ease-in-out) infinite;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.hud-status--ok {
-  color: var(--success);
-}
+.hud-status[data-status='excellent'] { --status-color: var(--phase-work); }
+.hud-status[data-status='degraded'] { --status-color: var(--accent-tertiary); }
+.hud-status[data-status='calibrating'] { --status-color: var(--accent-secondary); }
 
 @keyframes hud-pulse {
   0%, 100% { opacity: 0.55; }
@@ -277,6 +309,65 @@
   padding: var(--space-1) var(--space-3);
   font-size: 10px;
   letter-spacing: var(--letter-widest);
+}
+
+/* — Cycle progress dots — */
+.cycle-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--letter-widest);
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+}
+
+.cycle-dots__bracket {
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.cycle-dots__label {
+  margin-right: var(--space-1);
+}
+
+.cycle-dot {
+  display: inline-block;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  border: var(--border-thin) solid var(--border-default);
+  background: transparent;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.cycle-dot[data-state='done'] {
+  background: var(--phase-work);
+  border-color: var(--phase-work);
+  opacity: 0.55;
+}
+
+.cycle-dot[data-state='active'] {
+  background: var(--phase-work);
+  border-color: var(--phase-work);
+  box-shadow: var(--glow-work);
+  transform: scale(1.2);
+}
+
+.cycle-dot:hover {
+  transform: scale(1.3);
+  border-color: var(--phase-work);
+}
+
+.cycle-dot[data-state='active']:hover {
+  transform: scale(1.4);
 }
 
 /* — HUD bottom: log + theme switch — */

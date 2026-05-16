@@ -25,6 +25,29 @@ const nextPhase = (current: Phase): Phase => {
   return 'work';
 };
 
+type LinkStatus = 'stable' | 'excellent' | 'degraded' | 'calibrating';
+
+const linkStatusOrder: LinkStatus[] = ['stable', 'excellent', 'degraded', 'calibrating'];
+
+const linkStatusLabel: Record<LinkStatus, string> = {
+  stable: 'UPLINK STABLE',
+  excellent: 'UPLINK EXCELLENT',
+  degraded: 'UPLINK DEGRADED',
+  calibrating: 'UPLINK CALIBRATING',
+};
+
+const signalLevelByStatus: Record<LinkStatus, number> = {
+  stable: 4,
+  excellent: 5,
+  degraded: 2,
+  calibrating: 3,
+};
+
+const cycleLinkStatus = (current: LinkStatus): LinkStatus => {
+  const i = linkStatusOrder.indexOf(current);
+  return linkStatusOrder[(i + 1) % linkStatusOrder.length] ?? 'stable';
+};
+
 function SignalBars({ level }: { level: number }) {
   return (
     <span className="hud-signal" aria-hidden>
@@ -40,10 +63,35 @@ function SignalBars({ level }: { level: number }) {
   );
 }
 
+function CycleDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="cycle-dots" role="group" aria-label={`Cycle ${current} of ${total}`}>
+      <span className="cycle-dots__bracket" aria-hidden>[</span>
+      <span className="cycle-dots__label">CYCLE</span>
+      {Array.from({ length: total }, (_, i) => {
+        const idx = i + 1;
+        const state = idx < current ? 'done' : idx === current ? 'active' : 'pending';
+        return (
+          <span
+            key={idx}
+            className="cycle-dot"
+            data-state={state}
+            aria-label={`Session ${idx}`}
+            title={`Session ${idx}`}
+          />
+        );
+      })}
+      <span className="cycle-dots__bracket" aria-hidden>]</span>
+    </div>
+  );
+}
+
 export function App() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const [phase, setPhase] = useState<Phase>('work');
   const [running, setRunning] = useState(false);
+  const [glitching, setGlitching] = useState(false);
+  const [linkStatus, setLinkStatus] = useState<LinkStatus>('stable');
 
   const total = totalsByPhase[phase];
   const remaining = Math.floor(total * 0.6);
@@ -54,11 +102,28 @@ export function App() {
     applyTheme(next);
   };
 
+  const triggerGlitch = () => {
+    if (glitching) return;
+    setGlitching(true);
+  };
+
+  const handleLinkClick = () => {
+    setLinkStatus((current) => cycleLinkStatus(current));
+  };
+
   return (
     <main className="shell">
       <header className="shell__hud-top">
         <div className="hud-cluster">
-          <span className="hud-brand">[ PIBOX ]</span>
+          <button
+            type="button"
+            className={`hud-brand${glitching ? ' hud-brand--glitch' : ''}`}
+            onClick={triggerGlitch}
+            onAnimationEnd={() => setGlitching(false)}
+            aria-label="Trigger glitch"
+          >
+            [ PIBOX ]
+          </button>
           <span className="hud-divider" aria-hidden>/</span>
           <span className="hud-meta">NEURAL_DIVE</span>
           <span className="hud-divider" aria-hidden>·</span>
@@ -69,9 +134,17 @@ export function App() {
           <span className="hud-value">0xA7B3</span>
           <span className="hud-divider" aria-hidden>·</span>
           <span className="hud-meta">SIGNAL</span>
-          <SignalBars level={4} />
+          <SignalBars level={signalLevelByStatus[linkStatus]} />
           <span className="hud-divider" aria-hidden>·</span>
-          <span className="hud-status hud-status--ok">UPLINK STABLE</span>
+          <button
+            type="button"
+            className="hud-status"
+            data-status={linkStatus}
+            onClick={handleLinkClick}
+            aria-label="Cycle uplink status"
+          >
+            {linkStatusLabel[linkStatus]}
+          </button>
         </div>
       </header>
 
@@ -118,6 +191,8 @@ export function App() {
           onReset={() => setRunning(false)}
           onSkip={() => setPhase(nextPhase)}
         />
+
+        <CycleDots current={2} total={4} />
 
         <div className="shell__phase-switch" role="group" aria-label="Phase preview">
           {phases.map((value) => (

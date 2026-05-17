@@ -327,19 +327,30 @@ export function App() {
           <CycleDots current={2} total={settings.sessionsPerCycle} />
 
           <div className="shell__phase-switch" role="group" aria-label="Phase preview">
-            {phases.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className="hud-pill"
-                data-phase={value}
-                data-active={value === phase}
-                aria-pressed={value === phase}
-                onClick={() => setPhase(value)}
-              >
-                {phaseLabel[value]}
-              </button>
-            ))}
+            {phases.map((value) => {
+              const isActive = value === phase;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className="hud-pill"
+                  data-phase={value}
+                  data-active={isActive}
+                  aria-pressed={isActive}
+                  onClick={() => setPhase(value)}
+                >
+                  {isActive && (
+                    <motion.span
+                      className="hud-pill__active-bg"
+                      layoutId="phase-pill-active-bg"
+                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                      aria-hidden
+                    />
+                  )}
+                  <span className="hud-pill__label">{phaseLabel[value]}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

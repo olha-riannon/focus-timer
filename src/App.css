@@ -319,6 +319,7 @@
 }
 
 .hud-pill {
+  position: relative;
   padding: var(--space-2) var(--space-4);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
@@ -328,43 +329,98 @@
   color: var(--fg-tertiary);
   background: transparent;
   border: var(--border-hair) solid transparent;
+  cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
 }
 
-.hud-pill:hover {
+.hud-pill:not([data-active='true']):hover {
   color: var(--fg-secondary);
+  transform: translateY(-1px);
 }
 
-.hud-pill[data-active='true'] {
+.hud-pill:active {
+  transform: scale(0.96);
+}
+
+.hud-pill__label {
+  position: relative;
+  z-index: 2;
+}
+
+.hud-pill[data-phase='work'] { --pill-phase-color: var(--phase-work); }
+.hud-pill[data-phase='short-break'] { --pill-phase-color: var(--accent-tertiary); }
+.hud-pill[data-phase='long-break'] { --pill-phase-color: var(--phase-cold-cycle); }
+
+.hud-pill[data-phase] {
+  font-weight: var(--weight-regular);
+}
+
+/* Phase pills tint their label to match the pill's own phase color, sitting
+   on top of the same-coloured radial glow for a neon-sign feel. */
+.hud-pill[data-phase]:not([data-active='true']) {
+  color: var(--pill-phase-color);
+}
+
+/* Inactive radial glow — emanates from centre (behind the label) and fades
+   into transparency before reaching the pill edges. Fades out when active. */
+.hud-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--pill-phase-color, transparent) 28%, transparent) 0%,
+    color-mix(in srgb, var(--pill-phase-color, transparent) 9%, transparent) 45%,
+    transparent 75%
+  );
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.hud-pill[data-active='true']::before {
+  opacity: 0;
+}
+
+.hud-pill[data-phase]:not([data-active='true']):hover::before {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--pill-phase-color, transparent) 45%, transparent) 0%,
+    color-mix(in srgb, var(--pill-phase-color, transparent) 15%, transparent) 45%,
+    transparent 75%
+  );
+}
+
+/* Liquid active indicator — slides between active pills via Framer layoutId.
+   Spring transition with low damping creates an elastic stretch feel. Colour
+   inherits via currentColor so each phase tints bg / border / inset glow. */
+.hud-pill__active-bg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border: var(--border-hair) solid currentColor;
+  box-shadow: inset 0 0 12px color-mix(in srgb, currentColor 20%, transparent);
+  pointer-events: none;
+}
+
+/* Active state: phase pills get only label color (visual rendered by motion overlay). */
+.hud-pill[data-active='true'][data-phase='work'] { color: var(--phase-work); }
+.hud-pill[data-active='true'][data-phase='short-break'] { color: var(--accent-tertiary); }
+.hud-pill[data-active='true'][data-phase='long-break'] { color: var(--phase-cold-cycle); }
+
+/* Theme pills (no data-phase) keep full button-driven active styling. */
+.hud-pill[data-active='true']:not([data-phase]) {
   color: var(--accent);
   background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: inset 0 0 12px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.hud-pill[data-active='true'][data-phase='work'] {
-  color: var(--phase-work);
-  background: var(--phase-work-soft);
-  border-color: var(--phase-work);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--phase-work) 20%, transparent);
-}
-
-.hud-pill[data-active='true'][data-phase='short-break'] {
-  color: var(--accent-tertiary);
-  background: var(--accent-tertiary-soft);
-  border-color: var(--accent-tertiary);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--accent-tertiary) 20%, transparent);
-}
-
-.hud-pill[data-active='true'][data-phase='long-break'] {
-  color: var(--phase-cold-cycle);
-  background: var(--phase-cold-cycle-soft);
-  border-color: var(--phase-cold-cycle);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--phase-cold-cycle) 20%, transparent);
 }
 
 .hud-pill--small {

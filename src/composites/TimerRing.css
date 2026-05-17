@@ -39,6 +39,62 @@
   --phase-glow: var(--glow-cold-cycle);
 }
 
+/* Phase change transition — cinematic bloom. Panel briefly compresses,
+   opacity dips, blur/brightness peak in the middle, then it expands back
+   with the new phase already cascaded underneath. Smooth ease-in-out. */
+.timer-panel--glitch {
+  animation: timer-panel-transition var(--duration-slowest) cubic-bezier(0.65, 0, 0.35, 1) 1;
+}
+
+@keyframes timer-panel-transition {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: none;
+  }
+  18% {
+    transform: scale(0.985);
+    opacity: 0.82;
+    filter: blur(0.8px) brightness(1.25) saturate(1.15);
+  }
+  36% {
+    transform: scale(0.978);
+    opacity: 0.62;
+    filter: blur(1.8px) brightness(1.55) saturate(1.4);
+  }
+  52% {
+    transform: scale(0.99);
+    opacity: 0.68;
+    filter: blur(2px) brightness(1.6) saturate(1.5);
+  }
+  68% {
+    transform: scale(1.012);
+    opacity: 0.85;
+    filter: blur(1.2px) brightness(1.3) saturate(1.25);
+  }
+  82% {
+    transform: scale(1.006);
+    opacity: 0.94;
+    filter: blur(0.4px) brightness(1.1);
+  }
+  92% {
+    transform: scale(1.002);
+    opacity: 0.98;
+    filter: blur(0.1px) brightness(1.03);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timer-panel--glitch {
+    animation: none;
+  }
+}
+
 /* — Header — tag on left, cycle on right — */
 .timer-panel__header {
   display: flex;
@@ -53,6 +109,7 @@
   background: var(--phase-color);
   color: var(--fg-on-accent);
   padding: var(--space-1) var(--space-5) var(--space-1) var(--space-3);
+  overflow: hidden;
   clip-path: polygon(
     0 0,
     100% 0,
@@ -62,12 +119,23 @@
   transition: background-color var(--duration-slowest) var(--ease-out);
 }
 
+/* Hidden ghost-tag used to measure the natural width of the upcoming phase
+   label so we can animate the visible tag's width without FLIP transforms. */
+.timer-panel__tag--measurer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .timer-panel__tag-text {
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
   letter-spacing: var(--letter-widest);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .timer-panel__cycle {

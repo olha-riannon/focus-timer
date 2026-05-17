@@ -1,6 +1,10 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import './TimerRing.css';
 
 export type Phase = 'work' | 'short-break' | 'long-break';
+
+const PHASE_TEXT_EASE = [0.65, 0, 0.35, 1] as const;
 
 interface TimerRingProps {
   phase: Phase;
@@ -37,8 +41,28 @@ export function TimerRing({
   const syncPct = Math.round(progress * 100);
   const filled = Math.round(progress * DEPTH_BLOCKS);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const tagMeasureRef = useRef<HTMLDivElement>(null);
+  const prevPhaseRef = useRef(phase);
+  const [tagWidth, setTagWidth] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (prevPhaseRef.current === phase) return;
+    prevPhaseRef.current = phase;
+    const el = panelRef.current;
+    if (!el) return;
+    el.classList.remove('timer-panel--glitch');
+    void el.offsetHeight;
+    el.classList.add('timer-panel--glitch');
+  }, [phase]);
+
+  useLayoutEffect(() => {
+    if (!tagMeasureRef.current) return;
+    setTagWidth(tagMeasureRef.current.offsetWidth);
+  }, [phase]);
+
   return (
-    <div className="timer-panel" data-phase={phase}>
+    <div ref={panelRef} className="timer-panel" data-phase={phase}>
       <span className="timer-panel__stamp timer-panel__stamp--left" aria-hidden>
         BUILD 52 :: REV 22 :: 0xA7B3F2C
       </span>
@@ -48,9 +72,32 @@ export function TimerRing({
       <span className="timer-panel__hashes" aria-hidden />
 
       <header className="timer-panel__header">
-        <div className="timer-panel__tag">
+        <div
+          ref={tagMeasureRef}
+          className="timer-panel__tag timer-panel__tag--measurer"
+          aria-hidden
+        >
           <span className="timer-panel__tag-text">{phaseStatusLabel[phase]}</span>
         </div>
+
+        <motion.div
+          className="timer-panel__tag"
+          animate={tagWidth !== undefined ? { width: tagWidth } : false}
+          transition={{ duration: 0.34, ease: PHASE_TEXT_EASE }}
+        >
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={phaseStatusLabel[phase]}
+              initial={{ opacity: 0, scale: 0.9, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, scale: 1.08, filter: 'blur(4px)' }}
+              transition={{ duration: 0.34, ease: PHASE_TEXT_EASE }}
+              className="timer-panel__tag-text"
+            >
+              {phaseStatusLabel[phase]}
+            </motion.span>
+          </AnimatePresence>
+        </motion.div>
         <div className="timer-panel__cycle">
           <span className="timer-panel__cycle-label">CYCLE</span>
           <span className="timer-panel__cycle-value">
@@ -65,13 +112,20 @@ export function TimerRing({
         <span className="timer-panel__display-corner timer-panel__display-corner--tr" aria-hidden />
         <span className="timer-panel__display-corner timer-panel__display-corner--bl" aria-hidden />
         <span className="timer-panel__display-corner timer-panel__display-corner--br" aria-hidden />
-        <span
-          className="timer-panel__number"
-          role="img"
-          aria-label={`${display} remaining`}
-        >
-          {display}
-        </span>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={display}
+            initial={{ opacity: 0, scale: 0.85, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
+            transition={{ duration: 0.34, ease: PHASE_TEXT_EASE }}
+            className="timer-panel__number"
+            role="img"
+            aria-label={`${display} remaining`}
+          >
+            {display}
+          </motion.span>
+        </AnimatePresence>
       </div>
 
       <div className="timer-panel__inline-label" aria-hidden>

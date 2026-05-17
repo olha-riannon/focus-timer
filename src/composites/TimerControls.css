@@ -25,6 +25,7 @@
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-spring);
 }
 
@@ -77,6 +78,61 @@
   color: var(--fg-tertiary);
 }
 
+.hud-button[data-notch='bl'] {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    var(--space-2) 100%,
+    0 calc(100% - var(--space-2))
+  );
+}
+
+.hud-button[data-notch='br'] {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--space-2)),
+    calc(100% - var(--space-2)) 100%,
+    0 100%
+  );
+}
+
+/* Native border still applies and is clipped along the diagonal — the
+   notch-stroke span below extends the same line across the cut. Corner
+   brackets are hidden so they don't compete with the diagonal edge. */
+.hud-button[data-notch]::before,
+.hud-button[data-notch]::after {
+  display: none;
+}
+
+.hud-button__notch-stroke {
+  position: absolute;
+  width: calc(var(--space-2) * 1.41421356);
+  height: var(--border-hair);
+  background: var(--border-default);
+  pointer-events: none;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.hud-button[data-notch='bl'] .hud-button__notch-stroke {
+  left: 0;
+  top: calc(100% - var(--space-2));
+  transform: rotate(45deg);
+  transform-origin: 0 0;
+}
+
+.hud-button[data-notch='br'] .hud-button__notch-stroke {
+  right: 0;
+  top: calc(100% - var(--space-2));
+  transform: rotate(-45deg);
+  transform-origin: 100% 0;
+}
+
+.hud-button[data-notch]:hover .hud-button__notch-stroke {
+  background: var(--border-strong);
+}
+
 .hud-button--primary {
   padding: var(--space-3) var(--space-7);
   background: var(--accent-soft);
@@ -104,6 +160,12 @@
 
 .hud-button--primary:active {
   transform: scale(0.96);
+}
+
+/* Reserved width keeps the primary button steady when toggling INITIATE / PAUSE. */
+.hud-button--primary .hud-button__label {
+  min-width: 8em;
+  text-align: center;
 }
 
 .hud-button__label {

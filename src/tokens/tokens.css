@@ -27,22 +27,22 @@
  */
 
 :root {
-  /* — Surface · DARK (Neural Dive default) — */
-  --bg-base: hsl(220 30% 4%);
-  --bg-surface: hsl(220 26% 7%);
-  --bg-surface-2: hsl(220 22% 10%);
-  --bg-surface-3: hsl(220 20% 14%);
-  --bg-overlay: hsl(220 30% 2% / 0.72);
+  /* — Surface · DARK (Neural Dive default) — warm maroon-tinted — */
+  --bg-base: hsl(355 35% 5%);
+  --bg-surface: hsl(355 30% 8%);
+  --bg-surface-2: hsl(355 25% 11%);
+  --bg-surface-3: hsl(355 22% 14%);
+  --bg-overlay: hsl(355 35% 3% / 0.72);
 
-  --fg-primary: hsl(180 30% 96%);
-  --fg-secondary: hsl(190 12% 72%);
-  --fg-tertiary: hsl(200 14% 52%);
-  --fg-disabled: hsl(220 10% 32%);
+  --fg-primary: hsl(20 25% 96%);
+  --fg-secondary: hsl(10 12% 72%);
+  --fg-tertiary: hsl(355 14% 52%);
+  --fg-disabled: hsl(355 10% 32%);
   --fg-on-accent: hsl(220 30% 4%);
 
-  --border-subtle: hsl(190 30% 18%);
-  --border-default: hsl(190 26% 24%);
-  --border-strong: hsl(190 22% 34%);
+  --border-subtle: hsl(355 30% 18%);
+  --border-default: hsl(355 26% 24%);
+  --border-strong: hsl(355 22% 34%);
 
   /* — Accent · cyan (primary) — */
   --accent: hsl(180 100% 56%);
@@ -62,9 +62,8 @@
   --accent-tertiary-soft: hsl(48 50% 20%);
 
   /* — Phase tokens · work decoupled into its own green; breaks alias accent-* — */
-  --phase-work: hsl(145 88% 52%);
-  --phase-work-hover: hsl(145 88% 60%);
-  --phase-work-soft: hsl(145 60% 14%);
+  --phase-work: var(--accent);
+  --phase-work-soft: var(--accent-soft);
   --phase-break-short: var(--accent-secondary);
   --phase-break-short-soft: var(--accent-secondary-soft);
   --phase-break-long: var(--accent-tertiary);
@@ -84,16 +83,16 @@
   /* — Glow · atmospheric, reserved for moment-surfaces and HUD accents — */
   --glow-accent: 0 0 4px hsl(180 100% 56% / 0.85), 0 0 24px hsl(180 100% 56% / 0.45);
   --glow-accent-strong: 0 0 12px hsl(180 100% 56% / 0.95), 0 0 48px hsl(180 100% 56% / 0.55);
-  --glow-work: 0 0 4px hsl(145 88% 52% / 0.85), 0 0 24px hsl(145 88% 52% / 0.45);
+  --glow-work: var(--glow-accent);
   --glow-secondary: 0 0 4px hsl(320 100% 64% / 0.85), 0 0 24px hsl(320 100% 64% / 0.45);
   --glow-tertiary: 0 0 4px hsl(48 100% 60% / 0.85), 0 0 24px hsl(48 100% 60% / 0.45);
   --glow-danger: 0 0 4px hsl(0 100% 64% / 0.85), 0 0 24px hsl(0 100% 64% / 0.45);
 
   /* — Grid · background atmosphere, drawn with linear-gradients — */
-  --grid-line: hsl(190 50% 18% / 0.34);
-  --grid-line-strong: hsl(190 60% 24% / 0.6);
-  --scanline: hsl(180 50% 50% / 0.025);
-  --vignette: hsl(220 30% 2% / 0.55);
+  --grid-line: hsl(355 40% 22% / 0.36);
+  --grid-line-strong: hsl(355 50% 28% / 0.6);
+  --scanline: hsl(0 60% 50% / 0.03);
+  --vignette: hsl(355 40% 3% / 0.6);
 
   /* — Spacing · 4 px base, geometric — */
   --space-0: 0;
@@ -204,9 +203,8 @@
     --accent-tertiary-hover: hsl(40 90% 42%);
     --accent-tertiary-soft: hsl(40 90% 96%);
 
-    --phase-work: hsl(150 78% 34%);
-    --phase-work-hover: hsl(150 78% 28%);
-    --phase-work-soft: hsl(150 60% 92%);
+    --phase-work: var(--accent);
+    --phase-work-soft: var(--accent-soft);
 
     --danger: hsl(0 72% 52%);
     --danger-soft: hsl(0 80% 96%);
@@ -219,7 +217,7 @@
 
     --glow-accent: 0 0 2px hsl(180 90% 38% / 0.5), 0 0 12px hsl(180 90% 38% / 0.25);
     --glow-accent-strong: 0 0 6px hsl(180 90% 38% / 0.65), 0 0 24px hsl(180 90% 38% / 0.35);
-    --glow-work: 0 0 2px hsl(150 78% 34% / 0.5), 0 0 12px hsl(150 78% 34% / 0.25);
+    --glow-work: var(--glow-accent);
     --glow-secondary: 0 0 2px hsl(320 80% 50% / 0.5), 0 0 12px hsl(320 80% 50% / 0.25);
     --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
     --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
@@ -265,9 +263,8 @@
   --accent-tertiary-hover: hsl(40 90% 42%);
   --accent-tertiary-soft: hsl(40 90% 96%);
 
-  --phase-work: hsl(150 78% 34%);
-  --phase-work-hover: hsl(150 78% 28%);
-  --phase-work-soft: hsl(150 60% 92%);
+  --phase-work: var(--accent);
+  --phase-work-soft: var(--accent-soft);
 
   --danger: hsl(0 72% 52%);
   --danger-soft: hsl(0 80% 96%);
@@ -280,7 +277,7 @@
 
   --glow-accent: 0 0 2px hsl(180 90% 38% / 0.5), 0 0 12px hsl(180 90% 38% / 0.25);
   --glow-accent-strong: 0 0 6px hsl(180 90% 38% / 0.65), 0 0 24px hsl(180 90% 38% / 0.35);
-  --glow-work: 0 0 2px hsl(150 78% 34% / 0.5), 0 0 12px hsl(150 78% 34% / 0.25);
+  --glow-work: var(--glow-accent);
   --glow-secondary: 0 0 2px hsl(320 80% 50% / 0.5), 0 0 12px hsl(320 80% 50% / 0.25);
   --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
   --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
@@ -303,7 +300,6 @@
     --shadow-lg: none;
     --glow-accent: none;
     --glow-accent-strong: none;
-    --glow-work: none;
     --glow-secondary: none;
     --glow-tertiary: none;
     --glow-danger: none;

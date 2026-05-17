@@ -11,9 +11,9 @@ interface TimerRingProps {
 }
 
 const phaseStatusLabel: Record<Phase, string> = {
-  work: 'NEURAL LINK :: DEEP DIVE',
-  'short-break': 'NEURAL LINK :: SOFT RESET',
-  'long-break': 'NEURAL LINK :: COLD SHUTDOWN',
+  work: 'DEEP DIVE',
+  'short-break': 'BUFFER FLUSH',
+  'long-break': 'COLD CYCLE',
 };
 
 const formatTime = (totalSec: number): string => {
@@ -23,16 +23,7 @@ const formatTime = (totalSec: number): string => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-const VIEWBOX = 460;
-const STROKE = 12;
-const TICK_COUNT = 60;
-const DEPTH_BLOCKS = 12;
-
-const tickOuterRadius = (VIEWBOX - STROKE) / 2;
-const tickInnerRadius = tickOuterRadius - STROKE * 0.8;
-const longTickInnerRadius = tickOuterRadius - STROKE * 1.6;
-const ringRadius = (VIEWBOX - STROKE * 6) / 2;
-const circumference = 2 * Math.PI * ringRadius;
+const DEPTH_BLOCKS = 16;
 
 export function TimerRing({
   phase,
@@ -42,98 +33,79 @@ export function TimerRing({
   sessionsPerCycle,
 }: TimerRingProps) {
   const progress = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
-  const dashOffset = circumference * (1 - progress);
   const display = formatTime(remainingSeconds);
   const syncPct = Math.round(progress * 100);
   const filled = Math.round(progress * DEPTH_BLOCKS);
 
   return (
-    <div className="timer-ring" data-phase={phase}>
-      <div className="timer-ring__eyebrow" aria-hidden>
-        <span className="timer-ring__eyebrow-bracket">[</span>
-        <span className="timer-ring__eyebrow-text">{phaseStatusLabel[phase]}</span>
-        <span className="timer-ring__eyebrow-sep">·</span>
-        <span className="timer-ring__eyebrow-cycle">
-          CYCLE {sessionIndex.toString().padStart(2, '0')} /{' '}
-          {sessionsPerCycle.toString().padStart(2, '0')}
-        </span>
-        <span className="timer-ring__eyebrow-bracket">]</span>
-      </div>
+    <div className="timer-panel" data-phase={phase}>
+      <span className="timer-panel__stamp timer-panel__stamp--left" aria-hidden>
+        BUILD 52 :: REV 22 :: 0xA7B3F2C
+      </span>
+      <span className="timer-panel__stamp timer-panel__stamp--right" aria-hidden>
+        TRACE_ROUTE :: 0xC4F2 :: ECHO 12ms :: NODE 0x9E07
+      </span>
+      <span className="timer-panel__hashes" aria-hidden />
 
-      <div className="timer-ring__stage">
-        <div className="timer-ring__halo" aria-hidden />
+      <header className="timer-panel__header">
+        <div className="timer-panel__tag">
+          <span className="timer-panel__tag-text">{phaseStatusLabel[phase]}</span>
+        </div>
+        <div className="timer-panel__cycle">
+          <span className="timer-panel__cycle-label">CYCLE</span>
+          <span className="timer-panel__cycle-value">
+            {sessionIndex.toString().padStart(2, '0')} /{' '}
+            {sessionsPerCycle.toString().padStart(2, '0')}
+          </span>
+        </div>
+      </header>
 
-        <svg
-          className="timer-ring__svg"
-          viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}
+      <div className="timer-panel__display">
+        <span className="timer-panel__display-corner timer-panel__display-corner--tl" aria-hidden />
+        <span className="timer-panel__display-corner timer-panel__display-corner--tr" aria-hidden />
+        <span className="timer-panel__display-corner timer-panel__display-corner--bl" aria-hidden />
+        <span className="timer-panel__display-corner timer-panel__display-corner--br" aria-hidden />
+        <span
+          className="timer-panel__number"
           role="img"
           aria-label={`${display} remaining`}
         >
-          <g className="timer-ring__ticks">
-            {Array.from({ length: TICK_COUNT }, (_, i) => {
-              const angle = (i / TICK_COUNT) * 2 * Math.PI - Math.PI / 2;
-              const isLong = i % 5 === 0;
-              const innerR = isLong ? longTickInnerRadius : tickInnerRadius;
-              const x1 = VIEWBOX / 2 + Math.cos(angle) * innerR;
-              const y1 = VIEWBOX / 2 + Math.sin(angle) * innerR;
-              const x2 = VIEWBOX / 2 + Math.cos(angle) * tickOuterRadius;
-              const y2 = VIEWBOX / 2 + Math.sin(angle) * tickOuterRadius;
-              return (
-                <line
-                  key={i}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  className={isLong ? 'timer-ring__tick timer-ring__tick--long' : 'timer-ring__tick'}
-                />
-              );
-            })}
-          </g>
-
-          <circle
-            className="timer-ring__trail"
-            cx={VIEWBOX / 2}
-            cy={VIEWBOX / 2}
-            r={ringRadius}
-            strokeWidth={STROKE}
-            fill="none"
-          />
-          <circle
-            className="timer-ring__progress"
-            cx={VIEWBOX / 2}
-            cy={VIEWBOX / 2}
-            r={ringRadius}
-            strokeWidth={STROKE}
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={dashOffset}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${VIEWBOX / 2} ${VIEWBOX / 2})`}
-          />
-        </svg>
-
-        <span className="timer-ring__bracket timer-ring__bracket--tl" aria-hidden />
-        <span className="timer-ring__bracket timer-ring__bracket--tr" aria-hidden />
-        <span className="timer-ring__bracket timer-ring__bracket--bl" aria-hidden />
-        <span className="timer-ring__bracket timer-ring__bracket--br" aria-hidden />
-
-        <div className="timer-ring__display">
-          <span className="timer-ring__number">{display}</span>
-          <div className="timer-ring__meta">
-            <span className="timer-ring__meta-label">SYNC</span>
-            <span className="timer-ring__meta-value">
-              {syncPct.toString().padStart(3, '0')}%
-            </span>
-            <span className="timer-ring__meta-sep">·</span>
-            <span className="timer-ring__meta-label">DEPTH</span>
-            <span className="timer-ring__meta-bar" aria-hidden>
-              {'█'.repeat(filled)}
-              {'░'.repeat(DEPTH_BLOCKS - filled)}
-            </span>
-          </div>
-        </div>
+          {display}
+        </span>
       </div>
+
+      <div className="timer-panel__inline-label" aria-hidden>
+        // MEMORY_TRACE :: 0xA7B3F2C :: PACKET 0xC4F2
+      </div>
+
+      <div
+        className="timer-panel__progress"
+        role="progressbar"
+        aria-valuenow={syncPct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className="timer-panel__progress-fill"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
+
+      <footer className="timer-panel__footer">
+        <div className="timer-panel__meta">
+          <span className="timer-panel__meta-label">SYNC</span>
+          <span className="timer-panel__meta-value">
+            {syncPct.toString().padStart(3, '0')}%
+          </span>
+        </div>
+        <div className="timer-panel__meta">
+          <span className="timer-panel__meta-label">DEPTH</span>
+          <span className="timer-panel__meta-bar" aria-hidden>
+            {'█'.repeat(filled)}
+            {'░'.repeat(DEPTH_BLOCKS - filled)}
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }

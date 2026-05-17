@@ -61,17 +61,22 @@
   --accent-tertiary-hover: hsl(48 100% 68%);
   --accent-tertiary-soft: hsl(48 50% 20%);
 
-  /* — Phase tokens · work decoupled into its own green; breaks alias accent-* — */
-  --phase-work: var(--accent);
-  --phase-work-soft: var(--accent-soft);
-  --phase-break-short: var(--accent-secondary);
-  --phase-break-short-soft: var(--accent-secondary-soft);
-  --phase-break-long: var(--accent-tertiary);
-  --phase-break-long-soft: var(--accent-tertiary-soft);
+  /* — Phase tokens · deep-dive + cold-cycle get their own dedicated hues — */
+  --phase-deep-dive: hsl(325 100% 65%);
+  --phase-deep-dive-soft: hsl(325 50% 18%);
+  --phase-work: var(--phase-deep-dive);
+  --phase-work-soft: var(--phase-deep-dive-soft);
+  --phase-break-short: var(--accent-tertiary);
+  --phase-break-short-soft: var(--accent-tertiary-soft);
+  --phase-cold-cycle: hsl(230 100% 65%);
+  --phase-cold-cycle-soft: hsl(230 50% 18%);
+  --phase-break-long: var(--phase-cold-cycle);
+  --phase-break-long-soft: var(--phase-cold-cycle-soft);
 
   --danger: hsl(0 100% 64%);
   --danger-soft: hsl(0 50% 22%);
   --success: hsl(150 100% 56%);
+  --success-soft: hsl(150 60% 16%);
   --warning: hsl(38 100% 60%);
 
   /* — Shadow · black-grounded; atmospheric light belongs in --glow-* — */
@@ -83,10 +88,13 @@
   /* — Glow · atmospheric, reserved for moment-surfaces and HUD accents — */
   --glow-accent: 0 0 4px hsl(180 100% 56% / 0.85), 0 0 24px hsl(180 100% 56% / 0.45);
   --glow-accent-strong: 0 0 12px hsl(180 100% 56% / 0.95), 0 0 48px hsl(180 100% 56% / 0.55);
-  --glow-work: var(--glow-accent);
+  --glow-deep-dive: 0 0 4px hsl(325 100% 65% / 0.85), 0 0 24px hsl(325 100% 65% / 0.45);
+  --glow-work: var(--glow-deep-dive);
   --glow-secondary: 0 0 4px hsl(320 100% 64% / 0.85), 0 0 24px hsl(320 100% 64% / 0.45);
   --glow-tertiary: 0 0 4px hsl(48 100% 60% / 0.85), 0 0 24px hsl(48 100% 60% / 0.45);
   --glow-danger: 0 0 4px hsl(0 100% 64% / 0.85), 0 0 24px hsl(0 100% 64% / 0.45);
+  --glow-success: 0 0 4px hsl(150 100% 56% / 0.85), 0 0 24px hsl(150 100% 56% / 0.45);
+  --glow-cold-cycle: 0 0 4px hsl(230 100% 65% / 0.85), 0 0 24px hsl(230 100% 65% / 0.45);
 
   /* — Grid · background atmosphere, drawn with linear-gradients — */
   --grid-line: hsl(355 40% 22% / 0.36);
@@ -203,13 +211,19 @@
     --accent-tertiary-hover: hsl(40 90% 42%);
     --accent-tertiary-soft: hsl(40 90% 96%);
 
-    --phase-work: var(--accent);
-    --phase-work-soft: var(--accent-soft);
+    --phase-deep-dive: hsl(325 75% 48%);
+    --phase-deep-dive-soft: hsl(325 70% 94%);
+    --phase-work: var(--phase-deep-dive);
+    --phase-work-soft: var(--phase-deep-dive-soft);
 
     --danger: hsl(0 72% 52%);
     --danger-soft: hsl(0 80% 96%);
     --success: hsl(150 60% 38%);
+    --success-soft: hsl(150 80% 92%);
     --warning: hsl(38 92% 50%);
+
+    --phase-cold-cycle: hsl(230 75% 50%);
+    --phase-cold-cycle-soft: hsl(230 70% 94%);
 
     --shadow-sm: 0 1px 2px hsl(220 14% 10% / 0.04), 0 1px 1px hsl(220 14% 10% / 0.03);
     --shadow-md: 0 4px 12px hsl(220 14% 10% / 0.08), 0 2px 4px hsl(220 14% 10% / 0.04);
@@ -217,10 +231,13 @@
 
     --glow-accent: 0 0 2px hsl(180 90% 38% / 0.5), 0 0 12px hsl(180 90% 38% / 0.25);
     --glow-accent-strong: 0 0 6px hsl(180 90% 38% / 0.65), 0 0 24px hsl(180 90% 38% / 0.35);
-    --glow-work: var(--glow-accent);
+    --glow-deep-dive: 0 0 2px hsl(325 75% 48% / 0.5), 0 0 12px hsl(325 75% 48% / 0.25);
+    --glow-work: var(--glow-deep-dive);
     --glow-secondary: 0 0 2px hsl(320 80% 50% / 0.5), 0 0 12px hsl(320 80% 50% / 0.25);
     --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
     --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
+    --glow-success: 0 0 2px hsl(150 60% 38% / 0.5), 0 0 12px hsl(150 60% 38% / 0.25);
+    --glow-cold-cycle: 0 0 2px hsl(230 75% 50% / 0.5), 0 0 12px hsl(230 75% 50% / 0.25);
 
     --grid-line: hsl(190 30% 80% / 0.45);
     --grid-line-strong: hsl(190 30% 60% / 0.55);
@@ -263,13 +280,19 @@
   --accent-tertiary-hover: hsl(40 90% 42%);
   --accent-tertiary-soft: hsl(40 90% 96%);
 
-  --phase-work: var(--accent);
-  --phase-work-soft: var(--accent-soft);
+  --phase-deep-dive: hsl(325 75% 48%);
+  --phase-deep-dive-soft: hsl(325 70% 94%);
+  --phase-work: var(--phase-deep-dive);
+  --phase-work-soft: var(--phase-deep-dive-soft);
 
   --danger: hsl(0 72% 52%);
   --danger-soft: hsl(0 80% 96%);
   --success: hsl(150 60% 38%);
+  --success-soft: hsl(150 80% 92%);
   --warning: hsl(38 92% 50%);
+
+  --phase-cold-cycle: hsl(230 75% 50%);
+  --phase-cold-cycle-soft: hsl(230 70% 94%);
 
   --shadow-sm: 0 1px 2px hsl(220 14% 10% / 0.04), 0 1px 1px hsl(220 14% 10% / 0.03);
   --shadow-md: 0 4px 12px hsl(220 14% 10% / 0.08), 0 2px 4px hsl(220 14% 10% / 0.04);
@@ -277,10 +300,13 @@
 
   --glow-accent: 0 0 2px hsl(180 90% 38% / 0.5), 0 0 12px hsl(180 90% 38% / 0.25);
   --glow-accent-strong: 0 0 6px hsl(180 90% 38% / 0.65), 0 0 24px hsl(180 90% 38% / 0.35);
-  --glow-work: var(--glow-accent);
+  --glow-deep-dive: 0 0 2px hsl(325 75% 48% / 0.5), 0 0 12px hsl(325 75% 48% / 0.25);
+  --glow-work: var(--glow-deep-dive);
   --glow-secondary: 0 0 2px hsl(320 80% 50% / 0.5), 0 0 12px hsl(320 80% 50% / 0.25);
   --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
   --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
+  --glow-success: 0 0 2px hsl(150 60% 38% / 0.5), 0 0 12px hsl(150 60% 38% / 0.25);
+  --glow-cold-cycle: 0 0 2px hsl(230 75% 50% / 0.5), 0 0 12px hsl(230 75% 50% / 0.25);
 
   --grid-line: hsl(190 30% 80% / 0.45);
   --grid-line-strong: hsl(190 30% 60% / 0.55);
@@ -303,6 +329,9 @@
     --glow-secondary: none;
     --glow-tertiary: none;
     --glow-danger: none;
+    --glow-success: none;
+    --glow-cold-cycle: none;
+    --glow-deep-dive: none;
     --scanline: transparent;
     --vignette: transparent;
   }

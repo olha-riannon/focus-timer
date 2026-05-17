@@ -343,7 +343,7 @@ export function App() {
                     <motion.span
                       className="hud-pill__active-bg"
                       layoutId="phase-pill-active-bg"
-                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                      transition={{ type: 'spring', stiffness: 220, damping: 28 }}
                       aria-hidden
                     />
                   )}

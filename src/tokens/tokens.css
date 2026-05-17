@@ -73,11 +73,15 @@
   --phase-break-long: var(--phase-cold-cycle);
   --phase-break-long-soft: var(--phase-cold-cycle-soft);
 
-  --danger: hsl(0 100% 64%);
-  --danger-soft: hsl(0 50% 22%);
+  --danger: hsl(355 95% 56%);
+  --danger-soft: hsl(355 55% 18%);
   --success: hsl(150 100% 56%);
+  --success-hover: hsl(150 100% 64%);
   --success-soft: hsl(150 60% 16%);
   --warning: hsl(38 100% 60%);
+  --pause-color: hsl(28 100% 68%);
+  --pause-color-hover: hsl(28 100% 75%);
+  --pause-color-soft: hsl(25 60% 18%);
 
   /* — Shadow · black-grounded; atmospheric light belongs in --glow-* — */
   --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.6), 0 1px 1px hsl(0 0% 0% / 0.4);
@@ -92,8 +96,11 @@
   --glow-work: var(--glow-deep-dive);
   --glow-secondary: 0 0 4px hsl(320 100% 64% / 0.85), 0 0 24px hsl(320 100% 64% / 0.45);
   --glow-tertiary: 0 0 4px hsl(48 100% 60% / 0.85), 0 0 24px hsl(48 100% 60% / 0.45);
-  --glow-danger: 0 0 4px hsl(0 100% 64% / 0.85), 0 0 24px hsl(0 100% 64% / 0.45);
+  --glow-danger: 0 0 4px hsl(355 95% 56% / 0.85), 0 0 24px hsl(355 95% 56% / 0.45);
   --glow-success: 0 0 4px hsl(150 100% 56% / 0.85), 0 0 24px hsl(150 100% 56% / 0.45);
+  --glow-success-strong: 0 0 12px hsl(150 100% 56% / 0.95), 0 0 48px hsl(150 100% 56% / 0.55);
+  --glow-pause: 0 0 4px hsl(28 100% 68% / 0.85), 0 0 24px hsl(28 100% 68% / 0.45);
+  --glow-pause-strong: 0 0 12px hsl(28 100% 68% / 0.95), 0 0 48px hsl(28 100% 68% / 0.55);
   --glow-cold-cycle: 0 0 4px hsl(230 100% 65% / 0.85), 0 0 24px hsl(230 100% 65% / 0.45);
 
   /* — Grid · background atmosphere, drawn with linear-gradients — */
@@ -163,6 +170,7 @@
   --duration-fast: 140ms;
   --duration-base: 220ms;
   --duration-slow: 380ms;
+  --duration-slower: 500ms;
   --duration-slowest: 700ms;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -219,8 +227,12 @@
     --danger: hsl(0 72% 52%);
     --danger-soft: hsl(0 80% 96%);
     --success: hsl(150 60% 38%);
+    --success-hover: hsl(150 60% 32%);
     --success-soft: hsl(150 80% 92%);
     --warning: hsl(38 92% 50%);
+    --pause-color: hsl(25 75% 48%);
+    --pause-color-hover: hsl(25 75% 42%);
+    --pause-color-soft: hsl(25 70% 94%);
 
     --phase-cold-cycle: hsl(230 75% 50%);
     --phase-cold-cycle-soft: hsl(230 70% 94%);
@@ -237,6 +249,9 @@
     --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
     --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
     --glow-success: 0 0 2px hsl(150 60% 38% / 0.5), 0 0 12px hsl(150 60% 38% / 0.25);
+    --glow-success-strong: 0 0 6px hsl(150 60% 38% / 0.65), 0 0 24px hsl(150 60% 38% / 0.35);
+    --glow-pause: 0 0 2px hsl(25 75% 48% / 0.5), 0 0 12px hsl(25 75% 48% / 0.25);
+    --glow-pause-strong: 0 0 6px hsl(25 75% 48% / 0.65), 0 0 24px hsl(25 75% 48% / 0.35);
     --glow-cold-cycle: 0 0 2px hsl(230 75% 50% / 0.5), 0 0 12px hsl(230 75% 50% / 0.25);
 
     --grid-line: hsl(190 30% 80% / 0.45);
@@ -288,8 +303,12 @@
   --danger: hsl(0 72% 52%);
   --danger-soft: hsl(0 80% 96%);
   --success: hsl(150 60% 38%);
+  --success-hover: hsl(150 60% 32%);
   --success-soft: hsl(150 80% 92%);
   --warning: hsl(38 92% 50%);
+  --pause-color: hsl(25 75% 48%);
+  --pause-color-hover: hsl(25 75% 42%);
+  --pause-color-soft: hsl(25 70% 94%);
 
   --phase-cold-cycle: hsl(230 75% 50%);
   --phase-cold-cycle-soft: hsl(230 70% 94%);
@@ -306,6 +325,9 @@
   --glow-tertiary: 0 0 2px hsl(40 90% 48% / 0.5), 0 0 12px hsl(40 90% 48% / 0.25);
   --glow-danger: 0 0 2px hsl(0 72% 52% / 0.5), 0 0 12px hsl(0 72% 52% / 0.25);
   --glow-success: 0 0 2px hsl(150 60% 38% / 0.5), 0 0 12px hsl(150 60% 38% / 0.25);
+  --glow-success-strong: 0 0 6px hsl(150 60% 38% / 0.65), 0 0 24px hsl(150 60% 38% / 0.35);
+  --glow-pause: 0 0 2px hsl(25 75% 48% / 0.5), 0 0 12px hsl(25 75% 48% / 0.25);
+  --glow-pause-strong: 0 0 6px hsl(25 75% 48% / 0.65), 0 0 24px hsl(25 75% 48% / 0.35);
   --glow-cold-cycle: 0 0 2px hsl(230 75% 50% / 0.5), 0 0 12px hsl(230 75% 50% / 0.25);
 
   --grid-line: hsl(190 30% 80% / 0.45);
@@ -330,8 +352,11 @@
     --glow-tertiary: none;
     --glow-danger: none;
     --glow-success: none;
+    --glow-success-strong: none;
     --glow-cold-cycle: none;
     --glow-deep-dive: none;
+    --glow-pause: none;
+    --glow-pause-strong: none;
     --scanline: transparent;
     --vignette: transparent;
   }
@@ -344,6 +369,7 @@
     --duration-fast: 0ms;
     --duration-base: 0ms;
     --duration-slow: 0ms;
+    --duration-slower: 0ms;
     --duration-slowest: 0ms;
   }
 }

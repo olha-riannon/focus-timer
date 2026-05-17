@@ -339,14 +339,18 @@ export function App() {
                   aria-pressed={isActive}
                   onClick={() => setPhase(value)}
                 >
-                  {isActive && (
-                    <motion.span
-                      className="hud-pill__active-bg"
-                      layoutId="phase-pill-active-bg"
-                      transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-                      aria-hidden
-                    />
-                  )}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.span
+                        className="hud-pill__active-bg"
+                        initial={{ y: 14, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 14, opacity: 0 }}
+                        transition={{ duration: 0.42, ease: [0.4, 0, 0.2, 1] }}
+                        aria-hidden
+                      />
+                    )}
+                  </AnimatePresence>
                   <span className="hud-pill__label">{phaseLabel[value]}</span>
                 </button>
               );

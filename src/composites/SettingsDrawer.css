@@ -148,8 +148,8 @@
 }
 
 .number-stepper[data-phase='work'] { --stepper-color: var(--phase-work); }
-.number-stepper[data-phase='short-break'] { --stepper-color: var(--accent-secondary); }
-.number-stepper[data-phase='long-break'] { --stepper-color: var(--accent-tertiary); }
+.number-stepper[data-phase='short-break'] { --stepper-color: var(--accent-tertiary); }
+.number-stepper[data-phase='long-break'] { --stepper-color: var(--phase-cold-cycle); }
 
 .number-stepper__btn {
   width: var(--space-5);

@@ -28,15 +28,15 @@
 }
 
 .timer-panel[data-phase='short-break'] {
-  --phase-color: var(--accent-secondary);
-  --phase-soft: var(--accent-secondary-soft);
-  --phase-glow: var(--glow-secondary);
-}
-
-.timer-panel[data-phase='long-break'] {
   --phase-color: var(--accent-tertiary);
   --phase-soft: var(--accent-tertiary-soft);
   --phase-glow: var(--glow-tertiary);
+}
+
+.timer-panel[data-phase='long-break'] {
+  --phase-color: var(--phase-cold-cycle);
+  --phase-soft: var(--phase-cold-cycle-soft);
+  --phase-glow: var(--glow-cold-cycle);
 }
 
 /* — Header — tag on left, cycle on right — */
@@ -242,8 +242,7 @@
   color: var(--fg-disabled);
   pointer-events: none;
   overflow: hidden;
-  text-shadow: 0 0 4px color-mix(in srgb, var(--phase-color) 20%, transparent);
-  transition: text-shadow var(--duration-slowest) var(--ease-out);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .timer-panel__stamp--left {
@@ -263,8 +262,7 @@
   letter-spacing: var(--letter-wider);
   text-transform: uppercase;
   color: var(--fg-disabled);
-  text-shadow: 0 0 4px color-mix(in srgb, var(--phase-color) 25%, transparent);
-  transition: text-shadow var(--duration-slowest) var(--ease-out);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* — Diagonal hash decoration in bottom-right corner — */

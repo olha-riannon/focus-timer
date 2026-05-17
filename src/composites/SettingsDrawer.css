@@ -1,0 +1,255 @@
+.settings-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+}
+
+.settings-drawer {
+  --notch: 18px;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101;
+  width: min(60vw, 270px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-left: var(--border-thick) solid var(--accent);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--notch)) 0,
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%
+  );
+}
+
+.settings-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) var(--space-4) 0;
+  border-bottom: var(--border-hair) solid var(--border-subtle);
+}
+
+/* Tag = colored badge that visually anchors the drawer's identity, like image-2 frames. */
+.settings-drawer__tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent);
+  color: var(--fg-on-accent);
+  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-4);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - 10px) 100%,
+    0 100%
+  );
+}
+
+.settings-drawer__title {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--letter-widest);
+  text-transform: uppercase;
+  color: var(--fg-on-accent);
+}
+
+.settings-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  background: transparent;
+  border: var(--border-hair) solid var(--border-default);
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.settings-drawer__close:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+.settings-drawer__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings-group--inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-group__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+}
+
+.settings-drawer__theme-switch {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-self: center;
+}
+
+.settings-drawer__footer {
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--border-hair) solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.settings-drawer__hint {
+  color: var(--fg-disabled);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+}
+
+/* — Number stepper — */
+.number-stepper {
+  --stepper-color: var(--accent);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  align-self: center;
+}
+
+.number-stepper[data-phase='work'] { --stepper-color: var(--phase-work); }
+.number-stepper[data-phase='short-break'] { --stepper-color: var(--accent-secondary); }
+.number-stepper[data-phase='long-break'] { --stepper-color: var(--accent-tertiary); }
+
+.number-stepper__btn {
+  width: var(--space-5);
+  height: var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--fg-tertiary);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    text-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.number-stepper__btn:hover:not(:disabled) {
+  color: var(--stepper-color);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--stepper-color) 70%, transparent);
+}
+
+.number-stepper__btn:active:not(:disabled) {
+  transform: scale(0.85);
+}
+
+.number-stepper__btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.number-stepper__digits {
+  min-width: 2ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--letter-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-primary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.number-stepper[data-phase] .number-stepper__digits {
+  color: var(--stepper-color);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--stepper-color) 35%, transparent);
+}
+
+/* Reserved 3ch width keeps stepper layout identical with or without a unit. */
+.number-stepper__unit {
+  min-width: 3ch;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--fg-tertiary);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+}
+
+/* — Toggle — */
+.settings-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: var(--space-7);
+  height: var(--space-5);
+  box-sizing: border-box;
+  border: var(--border-hair) solid var(--border-default);
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.settings-toggle__thumb {
+  display: block;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin-left: var(--space-1);
+  background: var(--fg-tertiary);
+  border-radius: var(--radius-full);
+  transition:
+    transform var(--duration-base) var(--ease-spring),
+    background-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.settings-toggle[data-checked='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.settings-toggle[data-checked='true'] .settings-toggle__thumb {
+  transform: translateX(calc(var(--space-7) - var(--space-4) - 2 * var(--space-1) - 2 * var(--border-hair)));
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+}

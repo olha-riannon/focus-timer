@@ -296,6 +296,19 @@
   text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
+.hud-annotation__value-slot {
+  position: relative;
+  display: inline-grid;
+  font-family: var(--font-mono);
+  min-width: 13ch;
+}
+
+.hud-annotation__value-slot > * {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: start;
+}
+
 .hud-annotation--top-left .hud-annotation__bracket,
 .hud-annotation--top-right .hud-annotation__bracket {
   transform: translateY(-1px);

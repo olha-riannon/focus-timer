@@ -329,8 +329,20 @@ export function App() {
           <div className="hud-annotation hud-annotation--top-left">
             <span className="hud-annotation__bracket" aria-hidden>▸</span>
             <span className="hud-annotation__label">PHASE</span>
-            <span className="hud-annotation__value" data-phase={phase}>
-              {phaseLabel[phase].toUpperCase()}
+            <span className="hud-annotation__value-slot">
+              <AnimatePresence initial={false}>
+                <motion.span
+                  key={phase}
+                  className="hud-annotation__value"
+                  data-phase={phase}
+                  initial={{ x: -14, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 14, opacity: 0 }}
+                  transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {phaseLabel[phase].toUpperCase()}
+                </motion.span>
+              </AnimatePresence>
             </span>
           </div>
           <div className="hud-annotation hud-annotation--top-right">

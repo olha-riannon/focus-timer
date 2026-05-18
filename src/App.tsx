@@ -22,7 +22,7 @@ const nextPhase = (current: Phase): Phase => {
 };
 
 const defaultSettings: Settings = {
-  workMin: 25,
+  workMin: 60,
   workSec: 0,
   shortMin: 5,
   shortSec: 0,
@@ -482,6 +482,7 @@ export function App() {
         onClose={() => setDrawerOpen(false)}
         onSettingsChange={handleSettingsChange}
         onThemeChange={handleTheme}
+        onPhaseFocus={setPhase}
       />
     </>
   );

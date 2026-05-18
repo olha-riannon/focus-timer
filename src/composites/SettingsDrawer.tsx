@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { Theme } from '../tokens/theme.ts';
@@ -23,6 +23,7 @@ interface SettingsDrawerProps {
   onClose: () => void;
   onSettingsChange: (partial: Partial<Settings>) => void;
   onThemeChange: (next: Theme) => void;
+  onPhaseFocus?: (phase: Phase) => void;
 }
 
 const themes: Theme[] = ['light', 'dark', 'system'];
@@ -40,13 +41,42 @@ interface NumberStepperProps {
   padded?: boolean;
   ariaLabel: string;
   onChange: (next: number) => void;
+  onActivate?: () => void;
+  onOverflow?: () => void;
+  onUnderflow?: () => void;
+  animTrigger?: number;
 }
 
-function NumberStepper({ value, min, max, step, phase, notch, padded = true, ariaLabel, onChange }: NumberStepperProps) {
+function NumberStepper({
+  value,
+  min,
+  max,
+  step,
+  phase,
+  notch,
+  padded = true,
+  ariaLabel,
+  onChange,
+  onActivate,
+  onOverflow,
+  onUnderflow,
+  animTrigger,
+}: NumberStepperProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const [animKey, setAnimKey] = useState(0);
+  const animTriggerFirstRef = useRef(true);
+
+  useEffect(() => {
+    if (animTriggerFirstRef.current) {
+      animTriggerFirstRef.current = false;
+      return;
+    }
+    setAnimKey((k) => k + 1);
+  }, [animTrigger]);
   const atMin = value <= min;
   const atMax = value >= max;
+  const decDisabled = atMin && !onUnderflow;
+  const incDisabled = atMax && !onOverflow;
   const display = padded ? value.toString().padStart(2, '0') : value.toString();
 
   const commit = () => {
@@ -54,19 +84,32 @@ function NumberStepper({ value, min, max, step, phase, notch, padded = true, ari
     const parsed = Number.parseInt(draft, 10);
     if (Number.isFinite(parsed)) {
       const clamped = Math.max(min, Math.min(max, parsed));
-      if (clamped !== value) onChange(clamped);
+      if (clamped !== value) {
+        onActivate?.();
+        onChange(clamped);
+      }
     }
     setDraft(null);
   };
 
   const decrement = () => {
     setAnimKey((k) => k + 1);
-    onChange(Math.max(min, value - step));
+    onActivate?.();
+    if (atMin) {
+      onUnderflow?.();
+    } else {
+      onChange(Math.max(min, value - step));
+    }
   };
 
   const increment = () => {
     setAnimKey((k) => k + 1);
-    onChange(Math.min(max, value + step));
+    onActivate?.();
+    if (atMax) {
+      onOverflow?.();
+    } else {
+      onChange(Math.min(max, value + step));
+    }
   };
 
   return (
@@ -74,7 +117,7 @@ function NumberStepper({ value, min, max, step, phase, notch, padded = true, ari
       <button
         type="button"
         className="number-stepper__btn"
-        disabled={atMin}
+        disabled={decDisabled}
         onClick={decrement}
         aria-label={`Decrease ${ariaLabel}`}
       >
@@ -120,7 +163,7 @@ function NumberStepper({ value, min, max, step, phase, notch, padded = true, ari
       <button
         type="button"
         className="number-stepper__btn"
-        disabled={atMax}
+        disabled={incDisabled}
         onClick={increment}
         aria-label={`Increase ${ariaLabel}`}
       >
@@ -159,7 +202,29 @@ export function SettingsDrawer({
   onClose,
   onSettingsChange,
   onThemeChange,
+  onPhaseFocus,
 }: SettingsDrawerProps) {
+  const [minAnimTriggers, setMinAnimTriggers] = useState({
+    workMin: 0,
+    shortMin: 0,
+    longMin: 0,
+  });
+
+  const cascadeSec = (
+    delta: 1 | -1,
+    minKey: 'workMin' | 'shortMin' | 'longMin',
+    secKey: 'workSec' | 'shortSec' | 'longSec',
+  ) => {
+    const currentMin = settings[minKey];
+    if (delta === 1 && currentMin < 60) {
+      onSettingsChange({ [minKey]: currentMin + 1, [secKey]: 0 });
+      setMinAnimTriggers((a) => ({ ...a, [minKey]: a[minKey] + 1 }));
+    } else if (delta === -1 && currentMin > 0) {
+      onSettingsChange({ [minKey]: currentMin - 1, [secKey]: 59 });
+      setMinAnimTriggers((a) => ({ ...a, [minKey]: a[minKey] + 1 }));
+    }
+  };
+
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -221,6 +286,8 @@ export function SettingsDrawer({
                     notch="left"
                     ariaLabel="Deep dive minutes"
                     onChange={(workMin) => onSettingsChange({ workMin })}
+                    onActivate={() => onPhaseFocus?.('work')}
+                    animTrigger={minAnimTriggers.workMin}
                   />
                   <span className="settings-group__separator" aria-hidden>:</span>
                   <NumberStepper
@@ -232,6 +299,9 @@ export function SettingsDrawer({
                     notch="right"
                     ariaLabel="Deep dive seconds"
                     onChange={(workSec) => onSettingsChange({ workSec })}
+                    onActivate={() => onPhaseFocus?.('work')}
+                    onOverflow={() => cascadeSec(1, 'workMin', 'workSec')}
+                    onUnderflow={() => cascadeSec(-1, 'workMin', 'workSec')}
                   />
                 </div>
               </div>
@@ -248,6 +318,8 @@ export function SettingsDrawer({
                     notch="left"
                     ariaLabel="Buffer flush minutes"
                     onChange={(shortMin) => onSettingsChange({ shortMin })}
+                    onActivate={() => onPhaseFocus?.('short-break')}
+                    animTrigger={minAnimTriggers.shortMin}
                   />
                   <span className="settings-group__separator" aria-hidden>:</span>
                   <NumberStepper
@@ -259,6 +331,9 @@ export function SettingsDrawer({
                     notch="right"
                     ariaLabel="Buffer flush seconds"
                     onChange={(shortSec) => onSettingsChange({ shortSec })}
+                    onActivate={() => onPhaseFocus?.('short-break')}
+                    onOverflow={() => cascadeSec(1, 'shortMin', 'shortSec')}
+                    onUnderflow={() => cascadeSec(-1, 'shortMin', 'shortSec')}
                   />
                 </div>
               </div>
@@ -275,6 +350,8 @@ export function SettingsDrawer({
                     notch="left"
                     ariaLabel="Cold cycle minutes"
                     onChange={(longMin) => onSettingsChange({ longMin })}
+                    onActivate={() => onPhaseFocus?.('long-break')}
+                    animTrigger={minAnimTriggers.longMin}
                   />
                   <span className="settings-group__separator" aria-hidden>:</span>
                   <NumberStepper
@@ -286,6 +363,9 @@ export function SettingsDrawer({
                     notch="right"
                     ariaLabel="Cold cycle seconds"
                     onChange={(longSec) => onSettingsChange({ longSec })}
+                    onActivate={() => onPhaseFocus?.('long-break')}
+                    onOverflow={() => cascadeSec(1, 'longMin', 'longSec')}
+                    onUnderflow={() => cascadeSec(-1, 'longMin', 'longSec')}
                   />
                 </div>
               </div>

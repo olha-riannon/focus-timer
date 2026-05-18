@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { Theme } from '../tokens/theme.ts';
@@ -7,8 +7,11 @@ import './SettingsDrawer.css';
 
 export interface Settings {
   workMin: number;
+  workSec: number;
   shortMin: number;
+  shortSec: number;
   longMin: number;
+  longSec: number;
   sessionsPerCycle: number;
   soundEnabled: boolean;
 }
@@ -25,45 +28,104 @@ interface SettingsDrawerProps {
 const themes: Theme[] = ['light', 'dark', 'system'];
 
 const DRAWER_EASE = [0.16, 1, 0.3, 1] as const;
+const STEPPER_BLINK_EASE = [0.65, 0, 0.35, 1] as const;
 
 interface NumberStepperProps {
   value: number;
   min: number;
   max: number;
   step: number;
-  unit?: string;
   phase?: Phase;
+  notch?: 'left' | 'right' | 'all';
+  padded?: boolean;
   ariaLabel: string;
   onChange: (next: number) => void;
 }
 
-function NumberStepper({ value, min, max, step, unit, phase, ariaLabel, onChange }: NumberStepperProps) {
+function NumberStepper({ value, min, max, step, phase, notch, padded = true, ariaLabel, onChange }: NumberStepperProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [animKey, setAnimKey] = useState(0);
   const atMin = value <= min;
   const atMax = value >= max;
+  const display = padded ? value.toString().padStart(2, '0') : value.toString();
+
+  const commit = () => {
+    if (draft === null) return;
+    const parsed = Number.parseInt(draft, 10);
+    if (Number.isFinite(parsed)) {
+      const clamped = Math.max(min, Math.min(max, parsed));
+      if (clamped !== value) onChange(clamped);
+    }
+    setDraft(null);
+  };
+
+  const decrement = () => {
+    setAnimKey((k) => k + 1);
+    onChange(Math.max(min, value - step));
+  };
+
+  const increment = () => {
+    setAnimKey((k) => k + 1);
+    onChange(Math.min(max, value + step));
+  };
+
   return (
     <div className="number-stepper" data-phase={phase} role="group" aria-label={ariaLabel}>
       <button
         type="button"
         className="number-stepper__btn"
         disabled={atMin}
-        onClick={() => onChange(Math.max(min, value - step))}
+        onClick={decrement}
         aria-label={`Decrease ${ariaLabel}`}
       >
         &lt;
       </button>
-      <span className="number-stepper__digits">{value.toString().padStart(2, '0')}</span>
+      <div className="number-stepper__display" data-notch={notch}>
+        <input
+          type="text"
+          inputMode="numeric"
+          className="number-stepper__digits"
+          value={draft ?? display}
+          onFocus={(e) => {
+            setDraft(value.toString());
+            requestAnimationFrame(() => e.target.select());
+          }}
+          onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              commit();
+              e.currentTarget.blur();
+            } else if (e.key === 'Escape') {
+              setDraft(null);
+              e.currentTarget.blur();
+            }
+          }}
+          aria-label={ariaLabel}
+        />
+        <div className="number-stepper__digits-overlay" aria-hidden>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={animKey}
+              initial={{ opacity: 0, scale: 0.85, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
+              transition={{ duration: 0.34, ease: STEPPER_BLINK_EASE }}
+            >
+              {display}
+            </motion.span>
+          </AnimatePresence>
+        </div>
+      </div>
       <button
         type="button"
         className="number-stepper__btn"
         disabled={atMax}
-        onClick={() => onChange(Math.min(max, value + step))}
+        onClick={increment}
         aria-label={`Increase ${ariaLabel}`}
       >
         &gt;
       </button>
-      <span className="number-stepper__unit" aria-hidden={!unit}>
-        {unit ?? ''}
-      </span>
     </div>
   );
 }
@@ -116,7 +178,7 @@ export function SettingsDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.32 }}
+            transition={{ duration: 0.5 }}
             onClick={onClose}
             aria-hidden
           />
@@ -125,7 +187,7 @@ export function SettingsDrawer({
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.42, ease: DRAWER_EASE }}
+            transition={{ duration: 0.65, ease: DRAWER_EASE }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="settings-drawer-title"
@@ -149,44 +211,83 @@ export function SettingsDrawer({
             <div className="settings-drawer__body">
               <div className="settings-group">
                 <span className="settings-group__label">DEEP DIVE</span>
-                <NumberStepper
-                  value={settings.workMin}
-                  min={5}
-                  max={60}
-                  step={5}
-                  unit="min"
-                  phase="work"
-                  ariaLabel="Deep dive duration"
-                  onChange={(workMin) => onSettingsChange({ workMin })}
-                />
+                <div className="settings-group__steppers">
+                  <NumberStepper
+                    value={settings.workMin}
+                    min={0}
+                    max={60}
+                    step={1}
+                    phase="work"
+                    notch="left"
+                    ariaLabel="Deep dive minutes"
+                    onChange={(workMin) => onSettingsChange({ workMin })}
+                  />
+                  <span className="settings-group__separator" aria-hidden>:</span>
+                  <NumberStepper
+                    value={settings.workSec}
+                    min={0}
+                    max={59}
+                    step={1}
+                    phase="work"
+                    notch="right"
+                    ariaLabel="Deep dive seconds"
+                    onChange={(workSec) => onSettingsChange({ workSec })}
+                  />
+                </div>
               </div>
 
               <div className="settings-group">
                 <span className="settings-group__label">BUFFER FLUSH</span>
-                <NumberStepper
-                  value={settings.shortMin}
-                  min={1}
-                  max={15}
-                  step={1}
-                  unit="min"
-                  phase="short-break"
-                  ariaLabel="Buffer flush duration"
-                  onChange={(shortMin) => onSettingsChange({ shortMin })}
-                />
+                <div className="settings-group__steppers">
+                  <NumberStepper
+                    value={settings.shortMin}
+                    min={0}
+                    max={60}
+                    step={1}
+                    phase="short-break"
+                    notch="left"
+                    ariaLabel="Buffer flush minutes"
+                    onChange={(shortMin) => onSettingsChange({ shortMin })}
+                  />
+                  <span className="settings-group__separator" aria-hidden>:</span>
+                  <NumberStepper
+                    value={settings.shortSec}
+                    min={0}
+                    max={59}
+                    step={1}
+                    phase="short-break"
+                    notch="right"
+                    ariaLabel="Buffer flush seconds"
+                    onChange={(shortSec) => onSettingsChange({ shortSec })}
+                  />
+                </div>
               </div>
 
               <div className="settings-group">
                 <span className="settings-group__label">COLD CYCLE</span>
-                <NumberStepper
-                  value={settings.longMin}
-                  min={5}
-                  max={45}
-                  step={5}
-                  unit="min"
-                  phase="long-break"
-                  ariaLabel="Cold cycle duration"
-                  onChange={(longMin) => onSettingsChange({ longMin })}
-                />
+                <div className="settings-group__steppers">
+                  <NumberStepper
+                    value={settings.longMin}
+                    min={0}
+                    max={60}
+                    step={1}
+                    phase="long-break"
+                    notch="left"
+                    ariaLabel="Cold cycle minutes"
+                    onChange={(longMin) => onSettingsChange({ longMin })}
+                  />
+                  <span className="settings-group__separator" aria-hidden>:</span>
+                  <NumberStepper
+                    value={settings.longSec}
+                    min={0}
+                    max={59}
+                    step={1}
+                    phase="long-break"
+                    notch="right"
+                    ariaLabel="Cold cycle seconds"
+                    onChange={(longSec) => onSettingsChange({ longSec })}
+                  />
+                </div>
               </div>
 
               <div className="settings-group">
@@ -196,6 +297,8 @@ export function SettingsDrawer({
                   min={2}
                   max={8}
                   step={1}
+                  notch="all"
+                  padded={false}
                   ariaLabel="Sessions per cycle"
                   onChange={(sessionsPerCycle) => onSettingsChange({ sessionsPerCycle })}
                 />

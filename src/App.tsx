@@ -23,8 +23,11 @@ const nextPhase = (current: Phase): Phase => {
 
 const defaultSettings: Settings = {
   workMin: 25,
+  workSec: 0,
   shortMin: 5,
+  shortSec: 0,
   longMin: 15,
+  longSec: 0,
   sessionsPerCycle: 4,
   soundEnabled: true,
 };
@@ -164,9 +167,9 @@ export function App() {
   const [sessionLog] = useState<SessionLogEntry[]>(sampleSessionLog);
 
   const totalsByPhase: Record<Phase, number> = {
-    work: settings.workMin * 60,
-    'short-break': settings.shortMin * 60,
-    'long-break': settings.longMin * 60,
+    work: settings.workMin * 60 + settings.workSec,
+    'short-break': settings.shortMin * 60 + settings.shortSec,
+    'long-break': settings.longMin * 60 + settings.longSec,
   };
   const total = totalsByPhase[phase];
   const remaining = total;

@@ -172,6 +172,7 @@
   --duration-slow: 380ms;
   --duration-slower: 500ms;
   --duration-slowest: 700ms;
+  --duration-glacial: 1000ms;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
@@ -371,5 +372,6 @@
     --duration-slow: 0ms;
     --duration-slower: 0ms;
     --duration-slowest: 0ms;
+    --duration-glacial: 0ms;
   }
 }

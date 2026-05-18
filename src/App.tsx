@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { TimerRing, type Phase } from './composites/TimerRing.tsx';
@@ -98,6 +98,13 @@ const randomPing = (): number => 8 + Math.floor(Math.random() * 30);
 
 const LOG_ENTER_EXIT_EASE = [0.16, 1, 0.3, 1] as const;
 
+const VERSION_CLICK_WINDOW_MS = 700;
+const VERSION_DEFAULT_LABEL = 'v2.0.77';
+const VERSION_EASTER_LABEL = 'never fade away';
+const VERSION_SWAP_MS = 500;
+const VERSION_TOTAL_MS = 1000;
+const VERSION_TRANSITION_S = 0.25;
+
 function SignalBars({ level }: { level: number }) {
   return (
     <span className="hud-signal" aria-hidden>
@@ -182,6 +189,43 @@ export function App() {
     setGlitching(true);
   };
 
+  const [versionText, setVersionText] = useState(VERSION_DEFAULT_LABEL);
+  const [versionShaking, setVersionShaking] = useState(false);
+  const versionClickCountRef = useRef(0);
+  const versionClickTimerRef = useRef<number | undefined>(undefined);
+  const versionPlayingRef = useRef(false);
+
+  const triggerNeverFade = () => {
+    if (versionPlayingRef.current) return;
+    versionPlayingRef.current = true;
+    setVersionText(VERSION_EASTER_LABEL);
+    setVersionShaking(true);
+    window.setTimeout(() => {
+      setVersionText(VERSION_DEFAULT_LABEL);
+    }, VERSION_SWAP_MS);
+    window.setTimeout(() => {
+      versionPlayingRef.current = false;
+      setVersionShaking(false);
+    }, VERSION_TOTAL_MS);
+  };
+
+  const handleVersionClick = () => {
+    versionClickCountRef.current += 1;
+    if (versionClickTimerRef.current !== undefined) {
+      window.clearTimeout(versionClickTimerRef.current);
+    }
+    versionClickTimerRef.current = window.setTimeout(() => {
+      versionClickCountRef.current = 0;
+    }, VERSION_CLICK_WINDOW_MS);
+
+    if (versionClickCountRef.current >= 3) {
+      versionClickCountRef.current = 0;
+      window.clearTimeout(versionClickTimerRef.current);
+      versionClickTimerRef.current = undefined;
+      triggerNeverFade();
+    }
+  };
+
   const handleLinkClick = () => {
     setLinkStatus((current) => cycleLinkStatus(current));
   };
@@ -216,9 +260,27 @@ export function App() {
               [ PIBOX ]
             </button>
             <span className="hud-divider" aria-hidden>/</span>
-            <span className="hud-meta">NEURAL_DIVE</span>
+            <span className="hud-meta">NETRUN_DIVE</span>
             <span className="hud-divider" aria-hidden>·</span>
-            <span className="hud-meta hud-meta--dim">v0.7</span>
+            <button
+              type="button"
+              className={`hud-meta hud-meta--dim hud-version${versionShaking ? ' hud-version--shaking' : ''}`}
+              onClick={handleVersionClick}
+              aria-label="App version"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={versionText}
+                  className="hud-version__text"
+                  initial={{ opacity: 0, filter: 'blur(6px)' }}
+                  animate={{ opacity: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, filter: 'blur(6px)' }}
+                  transition={{ duration: VERSION_TRANSITION_S, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {versionText}
+                </motion.span>
+              </AnimatePresence>
+            </button>
           </div>
           <div className="hud-cluster hud-cluster--right">
             <span className="hud-meta">SUBNET</span>

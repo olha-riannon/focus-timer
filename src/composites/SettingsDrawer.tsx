@@ -396,18 +396,33 @@ export function SettingsDrawer({
               <div className="settings-group">
                 <span className="settings-group__label">INTERFACE</span>
                 <div className="settings-drawer__theme-switch" role="group" aria-label="Theme">
-                  {themes.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className="hud-pill"
-                      data-active={value === theme}
-                      aria-pressed={value === theme}
-                      onClick={() => onThemeChange(value)}
-                    >
-                      {value}
-                    </button>
-                  ))}
+                  {themes.map((value) => {
+                    const isActive = value === theme;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        className="hud-pill"
+                        data-active={isActive}
+                        aria-pressed={isActive}
+                        onClick={() => onThemeChange(value)}
+                      >
+                        <AnimatePresence>
+                          {isActive && (
+                            <motion.span
+                              className="hud-pill__active-bg"
+                              initial={{ y: 14, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: 14, opacity: 0 }}
+                              transition={{ duration: 0.42, ease: [0.4, 0, 0.2, 1] }}
+                              aria-hidden
+                            />
+                          )}
+                        </AnimatePresence>
+                        <span className="hud-pill__label">{value}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

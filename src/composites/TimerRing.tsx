@@ -20,11 +20,11 @@ const phaseStatusLabel: Record<Phase, string> = {
   'long-break': 'COLD CYCLE',
 };
 
-const formatTime = (totalSec: number): string => {
+const formatTimeParts = (totalSec: number): { m: string; s: string } => {
   const safe = Math.max(0, Math.floor(totalSec));
-  const m = Math.floor(safe / 60);
-  const s = safe % 60;
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const m = Math.floor(safe / 60).toString().padStart(2, '0');
+  const s = (safe % 60).toString().padStart(2, '0');
+  return { m, s };
 };
 
 const DEPTH_BLOCKS = 16;
@@ -37,7 +37,8 @@ export function TimerRing({
   sessionsPerCycle,
 }: TimerRingProps) {
   const progress = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
-  const display = formatTime(remainingSeconds);
+  const { m: minPart, s: secPart } = formatTimeParts(remainingSeconds);
+  const ariaTime = `${minPart}:${secPart}`;
   const syncPct = Math.round(progress * 100);
   const filled = Math.round(progress * DEPTH_BLOCKS);
 
@@ -107,25 +108,39 @@ export function TimerRing({
         </div>
       </header>
 
-      <div className="timer-panel__display">
+      <div className="timer-panel__display" role="img" aria-label={`${ariaTime} remaining`}>
         <span className="timer-panel__display-corner timer-panel__display-corner--tl" aria-hidden />
         <span className="timer-panel__display-corner timer-panel__display-corner--tr" aria-hidden />
         <span className="timer-panel__display-corner timer-panel__display-corner--bl" aria-hidden />
         <span className="timer-panel__display-corner timer-panel__display-corner--br" aria-hidden />
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
-            key={display}
+            key={minPart}
             initial={{ opacity: 0, scale: 0.85, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
             transition={{ duration: 0.34, ease: PHASE_TEXT_EASE }}
             className="timer-panel__number"
-            role="img"
-            aria-label={`${display} remaining`}
           >
-            {display}
+            {minPart}
           </motion.span>
         </AnimatePresence>
+        <span className="timer-panel__number timer-panel__number--sep" aria-hidden>:</span>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={secPart}
+            initial={{ opacity: 0, scale: 0.85, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
+            transition={{ duration: 0.34, ease: PHASE_TEXT_EASE }}
+            className="timer-panel__number"
+          >
+            {secPart}
+          </motion.span>
+        </AnimatePresence>
+        <span className="timer-panel__digit-caption" aria-hidden>min</span>
+        <span className="timer-panel__digit-caption timer-panel__digit-caption--gap" aria-hidden />
+        <span className="timer-panel__digit-caption" aria-hidden>sec</span>
       </div>
 
       <div className="timer-panel__inline-label" aria-hidden>

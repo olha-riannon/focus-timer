@@ -303,6 +303,9 @@ export function SettingsDrawer({
                     onOverflow={() => cascadeSec(1, 'workMin', 'workSec')}
                     onUnderflow={() => cascadeSec(-1, 'workMin', 'workSec')}
                   />
+                  <span className="settings-group__caption" aria-hidden>min</span>
+                  <span className="settings-group__caption settings-group__caption--gap" aria-hidden />
+                  <span className="settings-group__caption" aria-hidden>sec</span>
                 </div>
               </div>
 
@@ -335,6 +338,9 @@ export function SettingsDrawer({
                     onOverflow={() => cascadeSec(1, 'shortMin', 'shortSec')}
                     onUnderflow={() => cascadeSec(-1, 'shortMin', 'shortSec')}
                   />
+                  <span className="settings-group__caption" aria-hidden>min</span>
+                  <span className="settings-group__caption settings-group__caption--gap" aria-hidden />
+                  <span className="settings-group__caption" aria-hidden>sec</span>
                 </div>
               </div>
 
@@ -367,21 +373,27 @@ export function SettingsDrawer({
                     onOverflow={() => cascadeSec(1, 'longMin', 'longSec')}
                     onUnderflow={() => cascadeSec(-1, 'longMin', 'longSec')}
                   />
+                  <span className="settings-group__caption" aria-hidden>min</span>
+                  <span className="settings-group__caption settings-group__caption--gap" aria-hidden />
+                  <span className="settings-group__caption" aria-hidden>sec</span>
                 </div>
               </div>
 
               <div className="settings-group">
-                <span className="settings-group__label">SESSIONS PER CYCLE</span>
-                <NumberStepper
-                  value={settings.sessionsPerCycle}
-                  min={2}
-                  max={8}
-                  step={1}
-                  notch="all"
-                  padded={false}
-                  ariaLabel="Sessions per cycle"
-                  onChange={(sessionsPerCycle) => onSettingsChange({ sessionsPerCycle })}
-                />
+                <span className="settings-group__label">SESSIONS</span>
+                <div className="settings-group__sessions">
+                  <NumberStepper
+                    value={settings.sessionsPerCycle}
+                    min={2}
+                    max={8}
+                    step={1}
+                    notch="all"
+                    padded={false}
+                    ariaLabel="Sessions per cycle"
+                    onChange={(sessionsPerCycle) => onSettingsChange({ sessionsPerCycle })}
+                  />
+                  <span className="settings-group__caption" aria-hidden>cycle</span>
+                </div>
               </div>
 
               <div className="settings-group settings-group--inline">

@@ -115,9 +115,23 @@
 }
 
 .settings-group__steppers {
-  display: inline-flex;
-  gap: var(--space-1);
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  column-gap: var(--space-1);
+  row-gap: 4px;
   align-self: center;
+  align-items: center;
+  justify-items: center;
+}
+
+.settings-group__caption {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--letter-widest);
+  padding-left: calc(var(--letter-widest) + 2px);
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
 }
 
 .settings-group__label {
@@ -160,11 +174,15 @@
   align-self: flex-start;
 }
 
-.settings-group > .number-stepper {
+.settings-group__sessions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   align-self: center;
 }
 
-.settings-group > .number-stepper .number-stepper__display {
+.settings-group__sessions .number-stepper__display {
   min-width: calc(var(--space-8) * 3);
 }
 

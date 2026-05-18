@@ -327,7 +327,7 @@ export function App() {
           <span className="hud-corner hud-corner--br" aria-hidden />
 
           <div className="hud-annotation hud-annotation--top-left">
-            <span className="hud-annotation__bracket">&lt;</span>
+            <span className="hud-annotation__bracket" aria-hidden>▸</span>
             <span className="hud-annotation__label">PHASE</span>
             <span className="hud-annotation__value" data-phase={phase}>
               {phaseLabel[phase].toUpperCase()}
@@ -338,10 +338,10 @@ export function App() {
             <span className="hud-annotation__value">
               02 / {settings.sessionsPerCycle.toString().padStart(2, '0')}
             </span>
-            <span className="hud-annotation__bracket">&gt;</span>
+            <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
           <div className="hud-annotation hud-annotation--bottom-left">
-            <span className="hud-annotation__bracket">&lt;</span>
+            <span className="hud-annotation__bracket" aria-hidden>▸</span>
             <span className="hud-annotation__label">BUFFER</span>
             <button
               type="button"
@@ -368,7 +368,7 @@ export function App() {
             >
               {pingMs} ms
             </button>
-            <span className="hud-annotation__bracket">&gt;</span>
+            <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
 
           <TimerRing

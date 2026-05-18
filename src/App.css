@@ -284,16 +284,26 @@
   pointer-events: none;
 }
 
-.hud-annotation--top-left { top: var(--space-5); left: var(--space-5); }
-.hud-annotation--top-right { top: var(--space-5); right: var(--space-5); }
-.hud-annotation--bottom-left { bottom: var(--space-5); left: var(--space-5); }
-.hud-annotation--bottom-right { bottom: var(--space-5); right: var(--space-5); }
+.hud-annotation--top-left { top: calc(var(--space-5) - 8px); left: var(--space-5); }
+.hud-annotation--top-right { top: calc(var(--space-5) - 8px); right: var(--space-5); }
+.hud-annotation--bottom-left { bottom: calc(var(--space-5) - 8px); left: var(--space-5); }
+.hud-annotation--bottom-right { bottom: calc(var(--space-5) - 8px); right: var(--space-5); }
 
 .hud-annotation__bracket {
   color: var(--accent);
   font-family: var(--font-mono);
   font-weight: var(--weight-semibold);
   text-shadow: 0 0 4px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.hud-annotation--top-left .hud-annotation__bracket,
+.hud-annotation--top-right .hud-annotation__bracket {
+  transform: translateY(-1px);
+}
+
+.hud-annotation--bottom-left .hud-annotation__bracket,
+.hud-annotation--bottom-right .hud-annotation__bracket {
+  transform: translateY(-1px);
 }
 
 .hud-annotation__label {

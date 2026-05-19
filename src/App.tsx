@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { TimerPanel, type Phase } from './composites/TimerPanel.tsx';
 import { TimerControls } from './composites/TimerControls.tsx';
-import { SettingsDrawer, type Settings } from './composites/SettingsDrawer.tsx';
+import { SettingsDrawer } from './composites/SettingsDrawer.tsx';
+import { useTimerStore } from './store/timerStore.ts';
 import { applyTheme, storeTheme, getStoredTheme, type Theme } from './tokens/theme.ts';
 import './App.css';
 
@@ -13,23 +14,6 @@ const phaseLabel: Record<Phase, string> = {
   work: 'deep dive',
   'short-break': 'buffer flush',
   'long-break': 'cold cycle',
-};
-
-const nextPhase = (current: Phase): Phase => {
-  if (current === 'work') return 'short-break';
-  if (current === 'short-break') return 'long-break';
-  return 'work';
-};
-
-const defaultSettings: Settings = {
-  workMin: 60,
-  workSec: 0,
-  shortMin: 5,
-  shortSec: 0,
-  longMin: 15,
-  longSec: 0,
-  sessionsPerCycle: 4,
-  soundEnabled: true,
 };
 
 type LinkStatus = 'stable' | 'excellent' | 'degraded' | 'calibrating';
@@ -55,13 +39,6 @@ const cycleLinkStatus = (current: LinkStatus): LinkStatus => {
   return linkStatusOrder[(i + 1) % linkStatusOrder.length] ?? 'stable';
 };
 
-interface SessionLogEntry {
-  id: number;
-  phase: Phase;
-  duration: number;
-  completedAt: string;
-}
-
 const eventVerbByPhase: Record<Phase, string> = {
   work: 'deep dive complete',
   'short-break': 'buffer flush complete',
@@ -73,12 +50,6 @@ const phaseShortLabel: Record<Phase, string> = {
   'short-break': 'FLUSH',
   'long-break': 'CYCLE',
 };
-
-const sampleSessionLog: SessionLogEntry[] = [
-  { id: 1, phase: 'work', duration: 25 * 60, completedAt: '14:32' },
-  { id: 2, phase: 'short-break', duration: 5 * 60, completedAt: '14:37' },
-  { id: 3, phase: 'work', duration: 25 * 60, completedAt: '15:02' },
-];
 
 const formatDuration = (seconds: number): string => {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -123,14 +94,16 @@ function SignalBars({ level }: { level: number }) {
   );
 }
 
-function CycleDots({ current, total }: { current: number; total: number }) {
+function CycleDots({ current, total, phase }: { current: number; total: number; phase: Phase }) {
+  const isWorking = phase === 'work';
   return (
     <div className="cycle-dots" role="group" aria-label={`Cycle ${current} of ${total}`}>
       <span className="cycle-dots__bracket" aria-hidden>[</span>
       <span className="cycle-dots__label">CYCLE</span>
       {Array.from({ length: total }, (_, i) => {
         const idx = i + 1;
-        const state = idx < current ? 'done' : idx === current ? 'active' : 'pending';
+        const state =
+          idx < current ? 'done' : idx === current && isWorking ? 'active' : 'pending';
         return (
           <span
             key={idx}
@@ -148,8 +121,6 @@ function CycleDots({ current, total }: { current: number; total: number }) {
 
 export function App() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
-  const [phase, setPhase] = useState<Phase>('work');
-  const [running, setRunning] = useState(false);
   const [glitching, setGlitching] = useState(false);
   const [linkStatus, setLinkStatus] = useState<LinkStatus>('stable');
 
@@ -161,18 +132,34 @@ export function App() {
   const [bufferFlicker, setBufferFlicker] = useState(false);
   const [pingFlicker, setPingFlicker] = useState(false);
 
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [sessionLog] = useState<SessionLogEntry[]>(sampleSessionLog);
+  const phase = useTimerStore((s) => s.phase);
+  const running = useTimerStore((s) => s.running);
+  const remainingSeconds = useTimerStore((s) => s.remainingSeconds);
+  const sessionIndex = useTimerStore((s) => s.sessionIndex);
+  const sessionLog = useTimerStore((s) => s.sessionLog);
+  const settings = useTimerStore((s) => s.settings);
+  const toggle = useTimerStore((s) => s.toggle);
+  const reset = useTimerStore((s) => s.reset);
+  const skip = useTimerStore((s) => s.skip);
+  const setPhase = useTimerStore((s) => s.setPhase);
+  const setSettings = useTimerStore((s) => s.setSettings);
 
-  const totalsByPhase: Record<Phase, number> = {
-    work: settings.workMin * 60 + settings.workSec,
-    'short-break': settings.shortMin * 60 + settings.shortSec,
-    'long-break': settings.longMin * 60 + settings.longSec,
-  };
-  const total = totalsByPhase[phase];
-  const remaining = total;
+  const total =
+    phase === 'work'
+      ? settings.workMin * 60 + settings.workSec
+      : phase === 'short-break'
+        ? settings.shortMin * 60 + settings.shortSec
+        : settings.longMin * 60 + settings.longSec;
+
+  useEffect(() => {
+    if (!running) return;
+    const id = window.setInterval(() => {
+      useTimerStore.getState().tick();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [running]);
 
   const workSessions = sessionLog.filter((s) => s.phase === 'work');
   const focusedSeconds = workSessions.reduce((sum, s) => sum + s.duration, 0);
@@ -181,10 +168,6 @@ export function App() {
     setTheme(next);
     storeTheme(next);
     applyTheme(next);
-  };
-
-  const handleSettingsChange = (partial: Partial<Settings>) => {
-    setSettings((prev) => ({ ...prev, ...partial }));
   };
 
   const triggerGlitch = () => {
@@ -351,7 +334,8 @@ export function App() {
           <div className="hud-annotation hud-annotation--top-right">
             <span className="hud-annotation__label">CYCLE</span>
             <span className="hud-annotation__value">
-              02 / {settings.sessionsPerCycle.toString().padStart(2, '0')}
+              {Math.min(sessionIndex, settings.sessionsPerCycle).toString().padStart(2, '0')} /{' '}
+              {settings.sessionsPerCycle.toString().padStart(2, '0')}
             </span>
             <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
@@ -388,20 +372,20 @@ export function App() {
 
           <TimerPanel
             phase={phase}
-            remainingSeconds={remaining}
+            remainingSeconds={remainingSeconds}
             totalSeconds={total}
-            sessionIndex={2}
+            sessionIndex={sessionIndex}
             sessionsPerCycle={settings.sessionsPerCycle}
           />
 
           <TimerControls
             running={running}
-            onToggle={() => setRunning((v) => !v)}
-            onReset={() => setRunning(false)}
-            onSkip={() => setPhase(nextPhase)}
+            onToggle={toggle}
+            onReset={reset}
+            onSkip={skip}
           />
 
-          <CycleDots current={2} total={settings.sessionsPerCycle} />
+          <CycleDots current={sessionIndex} total={settings.sessionsPerCycle} phase={phase} />
 
           <div className="shell__phase-switch" role="group" aria-label="Phase preview">
             {phases.map((value) => {
@@ -480,7 +464,7 @@ export function App() {
         settings={settings}
         theme={theme}
         onClose={() => setDrawerOpen(false)}
-        onSettingsChange={handleSettingsChange}
+        onSettingsChange={setSettings}
         onThemeChange={handleTheme}
         onPhaseFocus={setPhase}
       />

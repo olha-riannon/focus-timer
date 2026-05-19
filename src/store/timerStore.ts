@@ -140,7 +140,16 @@ export const useTimerStore = create<TimerState>()(
       },
 
       setSettings: (partial) => {
-        set((s) => ({ settings: { ...s.settings, ...partial } }));
+        set((s) => {
+          const nextSettings = { ...s.settings, ...partial };
+          const oldTotal = totalForPhase(s.phase, s.settings);
+          const newTotal = totalForPhase(s.phase, nextSettings);
+          const shouldSync = !s.running && s.remainingSeconds === oldTotal;
+          return {
+            settings: nextSettings,
+            remainingSeconds: shouldSync ? newTotal : s.remainingSeconds,
+          };
+        });
       },
     }),
     {

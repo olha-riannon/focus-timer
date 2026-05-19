@@ -576,15 +576,16 @@
   flex-direction: column;
   gap: var(--space-1);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--fg-tertiary);
   min-width: 280px;
 }
 
 .hud-log__row {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1ch 22ch 14ch 7ch 1fr;
+  gap: var(--space-3);
   align-items: center;
-  gap: var(--space-2);
 }
 
 .hud-log__prefix {
@@ -593,18 +594,15 @@
 }
 
 .hud-log__event {
-  min-width: 22ch;
   color: var(--fg-secondary);
 }
 
 .hud-log__duration {
-  min-width: 5ch;
   color: var(--fg-tertiary);
   font-variant-numeric: tabular-nums;
 }
 
 .hud-log__phase {
-  min-width: 5ch;
   font-weight: var(--weight-semibold);
   letter-spacing: var(--letter-widest);
   text-transform: uppercase;
@@ -613,9 +611,12 @@
 .hud-log__phase[data-phase='work'] { color: var(--phase-work); }
 .hud-log__phase[data-phase='short-break'] { color: var(--accent-tertiary); }
 .hud-log__phase[data-phase='long-break'] { color: var(--phase-cold-cycle); }
+.hud-log__phase[data-phase='ok'] { color: var(--accent); }
+.hud-log__phase[data-phase='info'] { color: var(--fg-tertiary); }
+.hud-log__phase[data-phase='muted'] { color: var(--fg-disabled); }
 
 .hud-log__time {
-  margin-left: auto;
+  text-align: right;
   color: var(--fg-disabled);
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
@@ -624,6 +625,7 @@
 .hud-log__row--active .hud-log__event {
   color: var(--fg-primary);
 }
+
 
 /* — Today's focus stats — footer right — */
 .hud-stats {

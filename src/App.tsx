@@ -72,6 +72,72 @@ const randomPing = (): number => 8 + Math.floor(Math.random() * 30);
 
 const LOG_ENTER_EXIT_EASE = [0.16, 1, 0.3, 1] as const;
 
+const formatHHMMSS = (d: Date): string => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+interface ConsoleRow {
+  id: number;
+  event: string;
+  meta: string;
+  tag: string;
+  tagColor: 'work' | 'short-break' | 'long-break' | 'ok' | 'info' | 'muted';
+  time: string;
+}
+
+interface SystemTemplate {
+  event: string;
+  meta: () => string;
+  tag: string;
+  tagColor: ConsoleRow['tagColor'];
+}
+
+const SYSTEM_TEMPLATES: SystemTemplate[] = [
+  { event: 'packet trace', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
+  { event: 'memory scan', meta: () => 'no anomalies', tag: 'OK', tagColor: 'ok' },
+  { event: 'ping subnet', meta: () => `${randomPing()} ms`, tag: 'INFO', tagColor: 'info' },
+  { event: 'buffer flush', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
+  { event: 'core load', meta: () => `${30 + Math.floor(Math.random() * 60)}%`, tag: 'INFO', tagColor: 'info' },
+  { event: 'neural bandwidth', meta: () => `${70 + Math.floor(Math.random() * 30)}%`, tag: 'INFO', tagColor: 'info' },
+  { event: 'auth refresh', meta: () => 'token cycled', tag: 'OK', tagColor: 'ok' },
+  { event: 'thermal read', meta: () => `${38 + Math.floor(Math.random() * 8)} C`, tag: 'INFO', tagColor: 'info' },
+  { event: 'ice signature', meta: () => 'clean', tag: 'OK', tagColor: 'ok' },
+  { event: 'sync protocol', meta: () => 'stable', tag: 'OK', tagColor: 'ok' },
+  { event: 'decrypt shard', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
+  { event: 'node discovery', meta: () => `0x${randomHex4()}`, tag: 'INFO', tagColor: 'info' },
+  { event: 'vpn tunnel', meta: () => 'encrypted', tag: 'OK', tagColor: 'ok' },
+  { event: 'subnet scan', meta: () => `${4 + Math.floor(Math.random() * 12)} hosts`, tag: 'INFO', tagColor: 'info' },
+  { event: 'process kill', meta: () => `pid ${1000 + Math.floor(Math.random() * 8999)}`, tag: 'OK', tagColor: 'ok' },
+  { event: 'cache purge', meta: () => `${10 + Math.floor(Math.random() * 90)} kb`, tag: 'OK', tagColor: 'ok' },
+];
+
+let nextConsoleId = 1;
+
+function makeSystemRow(): ConsoleRow {
+  const tpl = SYSTEM_TEMPLATES[Math.floor(Math.random() * SYSTEM_TEMPLATES.length)]!;
+  return {
+    id: nextConsoleId++,
+    event: tpl.event,
+    meta: tpl.meta(),
+    tag: tpl.tag,
+    tagColor: tpl.tagColor,
+    time: formatHHMMSS(new Date()),
+  };
+}
+
+function makeBootRows(): ConsoleRow[] {
+  const now = new Date();
+  const t = formatHHMMSS(now);
+  return [
+    { id: nextConsoleId++, event: 'kernel boot', meta: '4 modules', tag: 'OK', tagColor: 'ok', time: t },
+    { id: nextConsoleId++, event: 'uplink handshake', meta: `0x${randomHex4()}`, tag: 'STABLE', tagColor: 'ok', time: t },
+    { id: nextConsoleId++, event: 'ice signature', meta: 'clean', tag: 'OK', tagColor: 'ok', time: t },
+    { id: nextConsoleId++, event: 'core load', meta: '47%', tag: 'INFO', tagColor: 'info', time: t },
+    { id: nextConsoleId++, event: 'neural bandwidth', meta: '89%', tag: 'INFO', tagColor: 'info', time: t },
+  ];
+}
+
 const VERSION_CLICK_WINDOW_MS = 700;
 const VERSION_DEFAULT_LABEL = 'v2.0.77';
 const VERSION_EASTER_LABEL = 'never fade away';
@@ -160,6 +226,46 @@ export function App() {
     }, 1000);
     return () => window.clearInterval(id);
   }, [running]);
+
+  const [terminalFeed, setTerminalFeed] = useState<ConsoleRow[]>(() => makeBootRows());
+  const lastLogLenRef = useRef(0);
+
+  useEffect(() => {
+    let timeoutId: number | undefined;
+    const scheduleNext = () => {
+      const delay = 1500 + Math.random() * 3500;
+      timeoutId = window.setTimeout(() => {
+        setTerminalFeed((feed) => [...feed, makeSystemRow()].slice(-30));
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
+    return () => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sessionLog.length > lastLogLenRef.current) {
+      const newEntries = sessionLog.slice(lastLogLenRef.current);
+      setTerminalFeed((feed) =>
+        [
+          ...feed,
+          ...newEntries.map<ConsoleRow>((entry) => ({
+            id: nextConsoleId++,
+            event: eventVerbByPhase[entry.phase],
+            meta: formatDuration(entry.duration),
+            tag: phaseShortLabel[entry.phase],
+            tagColor: entry.phase,
+            time: entry.completedAt,
+          })),
+        ].slice(-30),
+      );
+    }
+    lastLogLenRef.current = sessionLog.length;
+  }, [sessionLog]);
+
+  const visibleRows = terminalFeed.slice(-5);
 
   const workSessions = sessionLog.filter((s) => s.phase === 'work');
   const focusedSeconds = workSessions.reduce((sum, s) => sum + s.duration, 0);
@@ -420,13 +526,13 @@ export function App() {
         </section>
 
         <footer className="shell__hud-bottom">
-          <div className="hud-log" role="log" aria-label="Session history">
-            <AnimatePresence initial mode="popLayout">
-              {sessionLog.map((entry, i) => {
-                const isLast = i === sessionLog.length - 1;
+          <div className="hud-log" role="log" aria-label="System feed">
+            <AnimatePresence initial={false} mode="popLayout">
+              {visibleRows.map((row, i) => {
+                const isLast = i === visibleRows.length - 1;
                 return (
                   <motion.div
-                    key={entry.id}
+                    key={row.id}
                     layout
                     initial={{ opacity: 0, y: 14, filter: 'blur(3px)' }}
                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -435,12 +541,12 @@ export function App() {
                     className={`hud-log__row${isLast ? ' hud-log__row--active' : ''}`}
                   >
                     <span className="hud-log__prefix" aria-hidden>&gt;</span>
-                    <span className="hud-log__event">{eventVerbByPhase[entry.phase]}</span>
-                    <span className="hud-log__duration">{formatDuration(entry.duration)}</span>
-                    <span className="hud-log__phase" data-phase={entry.phase}>
-                      {phaseShortLabel[entry.phase]}
+                    <span className="hud-log__event">{row.event}</span>
+                    <span className="hud-log__duration">{row.meta}</span>
+                    <span className="hud-log__phase" data-phase={row.tagColor}>
+                      {row.tag}
                     </span>
-                    <span className="hud-log__time">{entry.completedAt}</span>
+                    <span className="hud-log__time">{row.time}</span>
                   </motion.div>
                 );
               })}

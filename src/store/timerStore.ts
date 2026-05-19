@@ -64,10 +64,9 @@ const nextSessionIndex = (
   return sessionIndex;
 };
 
-const formatHHMM = (date: Date): string => {
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
-  return `${h}:${m}`;
+const formatHHMMSS = (date: Date): string => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 };
 
 interface TimerState {
@@ -123,7 +122,7 @@ export const useTimerStore = create<TimerState>()(
           id: Date.now(),
           phase,
           duration: totalForPhase(phase, settings),
-          completedAt: formatHHMM(new Date()),
+          completedAt: formatHHMMSS(new Date()),
         };
         const next = advancePhase(phase, sessionIndex, settings.sessionsPerCycle);
         set({
@@ -154,7 +153,7 @@ export const useTimerStore = create<TimerState>()(
         sessionLog: state.sessionLog,
         settings: state.settings,
       }),
-      version: 1,
+      version: 2,
     },
   ),
 );

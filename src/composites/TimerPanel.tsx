@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import './TimerRing.css';
+import './TimerPanel.css';
 
 export type Phase = 'work' | 'short-break' | 'long-break';
 
 const PHASE_TEXT_EASE = [0.65, 0, 0.35, 1] as const;
 
-interface TimerRingProps {
+interface TimerPanelProps {
   phase: Phase;
   remainingSeconds: number;
   totalSeconds: number;
@@ -29,13 +29,13 @@ const formatTimeParts = (totalSec: number): { m: string; s: string } => {
 
 const DEPTH_BLOCKS = 16;
 
-export function TimerRing({
+export function TimerPanel({
   phase,
   remainingSeconds,
   totalSeconds,
   sessionIndex,
   sessionsPerCycle,
-}: TimerRingProps) {
+}: TimerPanelProps) {
   const progress = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
   const { m: minPart, s: secPart } = formatTimeParts(remainingSeconds);
   const ariaTime = `${minPart}:${secPart}`;

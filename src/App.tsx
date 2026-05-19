@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Settings as SettingsIcon } from 'lucide-react';
-import { TimerRing, type Phase } from './composites/TimerRing.tsx';
+import { TimerPanel, type Phase } from './composites/TimerPanel.tsx';
 import { TimerControls } from './composites/TimerControls.tsx';
 import { SettingsDrawer, type Settings } from './composites/SettingsDrawer.tsx';
 import { applyTheme, storeTheme, getStoredTheme, type Theme } from './tokens/theme.ts';
@@ -386,7 +386,7 @@ export function App() {
             <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
 
-          <TimerRing
+          <TimerPanel
             phase={phase}
             remainingSeconds={remaining}
             totalSeconds={total}

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { Theme } from '../tokens/theme.ts';
-import type { Phase } from './TimerRing.tsx';
+import type { Phase } from './TimerPanel.tsx';
 import './SettingsDrawer.css';
 
 export interface Settings {
@@ -44,6 +44,8 @@ interface NumberStepperProps {
   onActivate?: () => void;
   onOverflow?: () => void;
   onUnderflow?: () => void;
+  incrementDisabled?: boolean;
+  decrementDisabled?: boolean;
   animTrigger?: number;
 }
 
@@ -60,6 +62,8 @@ function NumberStepper({
   onActivate,
   onOverflow,
   onUnderflow,
+  incrementDisabled,
+  decrementDisabled,
   animTrigger,
 }: NumberStepperProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -75,8 +79,8 @@ function NumberStepper({
   }, [animTrigger]);
   const atMin = value <= min;
   const atMax = value >= max;
-  const decDisabled = atMin && !onUnderflow;
-  const incDisabled = atMax && !onOverflow;
+  const decDisabled = decrementDisabled ?? (atMin && !onUnderflow);
+  const incDisabled = incrementDisabled ?? (atMax && !onOverflow);
   const display = padded ? value.toString().padStart(2, '0') : value.toString();
 
   const commit = () => {
@@ -93,6 +97,7 @@ function NumberStepper({
   };
 
   const decrement = () => {
+    if (decDisabled) return;
     setAnimKey((k) => k + 1);
     onActivate?.();
     if (atMin) {
@@ -103,6 +108,7 @@ function NumberStepper({
   };
 
   const increment = () => {
+    if (incDisabled) return;
     setAnimKey((k) => k + 1);
     onActivate?.();
     if (atMax) {
@@ -285,7 +291,9 @@ export function SettingsDrawer({
                     phase="work"
                     notch="left"
                     ariaLabel="Deep dive minutes"
-                    onChange={(workMin) => onSettingsChange({ workMin })}
+                    onChange={(workMin) =>
+                      onSettingsChange(workMin >= 60 ? { workMin, workSec: 0 } : { workMin })
+                    }
                     onActivate={() => onPhaseFocus?.('work')}
                     animTrigger={minAnimTriggers.workMin}
                   />
@@ -298,7 +306,10 @@ export function SettingsDrawer({
                     phase="work"
                     notch="right"
                     ariaLabel="Deep dive seconds"
-                    onChange={(workSec) => onSettingsChange({ workSec })}
+                    onChange={(workSec) =>
+                      onSettingsChange({ workSec: settings.workMin >= 60 ? 0 : workSec })
+                    }
+                    incrementDisabled={settings.workMin >= 60}
                     onActivate={() => onPhaseFocus?.('work')}
                     onOverflow={() => cascadeSec(1, 'workMin', 'workSec')}
                     onUnderflow={() => cascadeSec(-1, 'workMin', 'workSec')}
@@ -320,7 +331,9 @@ export function SettingsDrawer({
                     phase="short-break"
                     notch="left"
                     ariaLabel="Buffer flush minutes"
-                    onChange={(shortMin) => onSettingsChange({ shortMin })}
+                    onChange={(shortMin) =>
+                      onSettingsChange(shortMin >= 60 ? { shortMin, shortSec: 0 } : { shortMin })
+                    }
                     onActivate={() => onPhaseFocus?.('short-break')}
                     animTrigger={minAnimTriggers.shortMin}
                   />
@@ -333,7 +346,10 @@ export function SettingsDrawer({
                     phase="short-break"
                     notch="right"
                     ariaLabel="Buffer flush seconds"
-                    onChange={(shortSec) => onSettingsChange({ shortSec })}
+                    onChange={(shortSec) =>
+                      onSettingsChange({ shortSec: settings.shortMin >= 60 ? 0 : shortSec })
+                    }
+                    incrementDisabled={settings.shortMin >= 60}
                     onActivate={() => onPhaseFocus?.('short-break')}
                     onOverflow={() => cascadeSec(1, 'shortMin', 'shortSec')}
                     onUnderflow={() => cascadeSec(-1, 'shortMin', 'shortSec')}
@@ -355,7 +371,9 @@ export function SettingsDrawer({
                     phase="long-break"
                     notch="left"
                     ariaLabel="Cold cycle minutes"
-                    onChange={(longMin) => onSettingsChange({ longMin })}
+                    onChange={(longMin) =>
+                      onSettingsChange(longMin >= 60 ? { longMin, longSec: 0 } : { longMin })
+                    }
                     onActivate={() => onPhaseFocus?.('long-break')}
                     animTrigger={minAnimTriggers.longMin}
                   />
@@ -368,7 +386,10 @@ export function SettingsDrawer({
                     phase="long-break"
                     notch="right"
                     ariaLabel="Cold cycle seconds"
-                    onChange={(longSec) => onSettingsChange({ longSec })}
+                    onChange={(longSec) =>
+                      onSettingsChange({ longSec: settings.longMin >= 60 ? 0 : longSec })
+                    }
+                    incrementDisabled={settings.longMin >= 60}
                     onActivate={() => onPhaseFocus?.('long-break')}
                     onOverflow={() => cascadeSec(1, 'longMin', 'longSec')}
                     onUnderflow={() => cascadeSec(-1, 'longMin', 'longSec')}

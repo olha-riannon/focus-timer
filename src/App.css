@@ -633,7 +633,6 @@
 }
 
 .hud-log__phase {
-  font-weight: var(--weight-semibold);
   letter-spacing: var(--letter-widest);
   text-transform: uppercase;
 }

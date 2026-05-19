@@ -261,6 +261,15 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const id = window.setInterval(() => {
+      setPingMs(randomPing());
+      setPingFlicker(true);
+    }, 4_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+
+  useEffect(() => {
     if (lastLinkStatusRef.current === linkStatus) return;
     lastLinkStatusRef.current = linkStatus;
     setTerminalFeed((feed) =>
@@ -359,11 +368,6 @@ export function App() {
   const randomizeBuffer = () => {
     setBufferHex(randomHex4());
     setBufferFlicker(true);
-  };
-
-  const randomizePing = () => {
-    setPingMs(randomPing());
-    setPingFlicker(true);
   };
 
   return (
@@ -503,17 +507,13 @@ export function App() {
           </div>
           <div className="hud-annotation hud-annotation--bottom-right">
             <span className="hud-annotation__label">PING</span>
-            <button
-              type="button"
+            <span
               className="hud-annotation__value"
-              data-clickable="true"
               data-flicker={pingFlicker}
-              onClick={randomizePing}
               onAnimationEnd={() => setPingFlicker(false)}
-              aria-label="Ping subnet"
             >
               {pingMs} ms
-            </button>
+            </span>
             <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
 

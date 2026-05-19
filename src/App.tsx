@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { TimerPanel, type Phase } from './composites/TimerPanel.tsx';
 import { TimerControls } from './composites/TimerControls.tsx';
-import { SettingsDrawer, type Settings } from './composites/SettingsDrawer.tsx';
+import { SettingsDrawer } from './composites/SettingsDrawer.tsx';
+import { useTimerStore } from './store/timerStore.ts';
 import { applyTheme, storeTheme, getStoredTheme, type Theme } from './tokens/theme.ts';
 import './App.css';
 
@@ -15,52 +16,35 @@ const phaseLabel: Record<Phase, string> = {
   'long-break': 'cold cycle',
 };
 
-const nextPhase = (current: Phase): Phase => {
-  if (current === 'work') return 'short-break';
-  if (current === 'short-break') return 'long-break';
-  return 'work';
-};
+type LinkStatus = 'excellent' | 'stable' | 'degraded' | 'critical';
 
-const defaultSettings: Settings = {
-  workMin: 60,
-  workSec: 0,
-  shortMin: 5,
-  shortSec: 0,
-  longMin: 15,
-  longSec: 0,
-  sessionsPerCycle: 4,
-  soundEnabled: true,
-};
-
-type LinkStatus = 'stable' | 'excellent' | 'degraded' | 'calibrating';
-
-const linkStatusOrder: LinkStatus[] = ['stable', 'excellent', 'degraded', 'calibrating'];
+const linkStatusPool: LinkStatus[] = ['excellent', 'stable', 'degraded', 'critical'];
 
 const linkStatusLabel: Record<LinkStatus, string> = {
-  stable: 'UPLINK STABLE',
   excellent: 'UPLINK EXCELLENT',
+  stable: 'UPLINK STABLE',
   degraded: 'UPLINK DEGRADED',
-  calibrating: 'UPLINK CALIBRATING',
+  critical: 'UPLINK CRITICAL',
 };
 
 const signalLevelByStatus: Record<LinkStatus, number> = {
-  stable: 4,
   excellent: 5,
+  stable: 4,
   degraded: 2,
-  calibrating: 3,
+  critical: 1,
 };
 
-const cycleLinkStatus = (current: LinkStatus): LinkStatus => {
-  const i = linkStatusOrder.indexOf(current);
-  return linkStatusOrder[(i + 1) % linkStatusOrder.length] ?? 'stable';
+const linkStatusTag: Record<LinkStatus, string> = {
+  excellent: 'EXCL',
+  stable: 'STBL',
+  degraded: 'DEGR',
+  critical: 'CRIT',
 };
 
-interface SessionLogEntry {
-  id: number;
-  phase: Phase;
-  duration: number;
-  completedAt: string;
-}
+const pickNextLinkStatus = (current: LinkStatus): LinkStatus => {
+  const others = linkStatusPool.filter((s) => s !== current);
+  return others[Math.floor(Math.random() * others.length)] ?? current;
+};
 
 const eventVerbByPhase: Record<Phase, string> = {
   work: 'deep dive complete',
@@ -73,12 +57,6 @@ const phaseShortLabel: Record<Phase, string> = {
   'short-break': 'FLUSH',
   'long-break': 'CYCLE',
 };
-
-const sampleSessionLog: SessionLogEntry[] = [
-  { id: 1, phase: 'work', duration: 25 * 60, completedAt: '14:32' },
-  { id: 2, phase: 'short-break', duration: 5 * 60, completedAt: '14:37' },
-  { id: 3, phase: 'work', duration: 25 * 60, completedAt: '15:02' },
-];
 
 const formatDuration = (seconds: number): string => {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -101,6 +79,72 @@ const randomPing = (): number => 8 + Math.floor(Math.random() * 30);
 
 const LOG_ENTER_EXIT_EASE = [0.16, 1, 0.3, 1] as const;
 
+const formatHHMMSS = (d: Date): string => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+interface ConsoleRow {
+  id: number;
+  event: string;
+  meta: string;
+  tag: string;
+  tagColor: 'default' | 'excellent' | 'stable' | 'degraded' | 'critical';
+  time: string;
+}
+
+interface SystemTemplate {
+  event: string;
+  meta: () => string;
+  tag: string;
+  tagColor: ConsoleRow['tagColor'];
+}
+
+const SYSTEM_TEMPLATES: SystemTemplate[] = [
+  { event: 'packet trace', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'memory scan', meta: () => 'no anomalies', tag: 'OK', tagColor: 'default'},
+  { event: 'ping subnet', meta: () => `${randomPing()} ms`, tag: 'INFO', tagColor: 'default'},
+  { event: 'buffer flush', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'core load', meta: () => `${30 + Math.floor(Math.random() * 60)}%`, tag: 'INFO', tagColor: 'default'},
+  { event: 'neural bandwidth', meta: () => `${70 + Math.floor(Math.random() * 30)}%`, tag: 'INFO', tagColor: 'default'},
+  { event: 'auth refresh', meta: () => 'token cycled', tag: 'OK', tagColor: 'default'},
+  { event: 'thermal read', meta: () => `${38 + Math.floor(Math.random() * 8)} C`, tag: 'INFO', tagColor: 'default'},
+  { event: 'ice signature', meta: () => 'clean', tag: 'OK', tagColor: 'default'},
+  { event: 'sync protocol', meta: () => 'stable', tag: 'OK', tagColor: 'default'},
+  { event: 'decrypt shard', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'node discovery', meta: () => `0x${randomHex4()}`, tag: 'INFO', tagColor: 'default'},
+  { event: 'vpn tunnel', meta: () => 'encrypted', tag: 'OK', tagColor: 'default'},
+  { event: 'subnet scan', meta: () => `${4 + Math.floor(Math.random() * 12)} hosts`, tag: 'INFO', tagColor: 'default'},
+  { event: 'process kill', meta: () => `pid ${1000 + Math.floor(Math.random() * 8999)}`, tag: 'OK', tagColor: 'default'},
+  { event: 'cache purge', meta: () => `${10 + Math.floor(Math.random() * 90)} kb`, tag: 'OK', tagColor: 'default'},
+];
+
+let nextConsoleId = 1;
+
+function makeSystemRow(): ConsoleRow {
+  const tpl = SYSTEM_TEMPLATES[Math.floor(Math.random() * SYSTEM_TEMPLATES.length)]!;
+  return {
+    id: nextConsoleId++,
+    event: tpl.event,
+    meta: tpl.meta(),
+    tag: tpl.tag,
+    tagColor: tpl.tagColor,
+    time: formatHHMMSS(new Date()),
+  };
+}
+
+function makeBootRows(): ConsoleRow[] {
+  const now = new Date();
+  const t = formatHHMMSS(now);
+  return [
+    { id: nextConsoleId++, event: 'kernel boot', meta: '4 modules', tag: 'OK', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'uplink handshake', meta: `0x${randomHex4()}`, tag: 'STABLE', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'ice signature', meta: 'clean', tag: 'OK', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'core load', meta: '47%', tag: 'INFO', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'neural bandwidth', meta: '89%', tag: 'INFO', tagColor: 'default', time: t },
+  ];
+}
+
 const VERSION_CLICK_WINDOW_MS = 700;
 const VERSION_DEFAULT_LABEL = 'v2.0.77';
 const VERSION_EASTER_LABEL = 'never fade away';
@@ -108,9 +152,9 @@ const VERSION_SWAP_MS = 500;
 const VERSION_TOTAL_MS = 1000;
 const VERSION_TRANSITION_S = 0.25;
 
-function SignalBars({ level }: { level: number }) {
+function SignalBars({ level, status }: { level: number; status: LinkStatus }) {
   return (
-    <span className="hud-signal" aria-hidden>
+    <span className="hud-signal" data-status={status} aria-hidden>
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
@@ -123,14 +167,16 @@ function SignalBars({ level }: { level: number }) {
   );
 }
 
-function CycleDots({ current, total }: { current: number; total: number }) {
+function CycleDots({ current, total, phase }: { current: number; total: number; phase: Phase }) {
+  const isWorking = phase === 'work';
   return (
     <div className="cycle-dots" role="group" aria-label={`Cycle ${current} of ${total}`}>
       <span className="cycle-dots__bracket" aria-hidden>[</span>
       <span className="cycle-dots__label">CYCLE</span>
       {Array.from({ length: total }, (_, i) => {
         const idx = i + 1;
-        const state = idx < current ? 'done' : idx === current ? 'active' : 'pending';
+        const state =
+          idx < current ? 'done' : idx === current && isWorking ? 'active' : 'pending';
         return (
           <span
             key={idx}
@@ -148,8 +194,6 @@ function CycleDots({ current, total }: { current: number; total: number }) {
 
 export function App() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
-  const [phase, setPhase] = useState<Phase>('work');
-  const [running, setRunning] = useState(false);
   const [glitching, setGlitching] = useState(false);
   const [linkStatus, setLinkStatus] = useState<LinkStatus>('stable');
 
@@ -161,18 +205,109 @@ export function App() {
   const [bufferFlicker, setBufferFlicker] = useState(false);
   const [pingFlicker, setPingFlicker] = useState(false);
 
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [sessionLog] = useState<SessionLogEntry[]>(sampleSessionLog);
+  const phase = useTimerStore((s) => s.phase);
+  const running = useTimerStore((s) => s.running);
+  const remainingSeconds = useTimerStore((s) => s.remainingSeconds);
+  const sessionIndex = useTimerStore((s) => s.sessionIndex);
+  const sessionLog = useTimerStore((s) => s.sessionLog);
+  const settings = useTimerStore((s) => s.settings);
+  const toggle = useTimerStore((s) => s.toggle);
+  const reset = useTimerStore((s) => s.reset);
+  const skip = useTimerStore((s) => s.skip);
+  const setPhase = useTimerStore((s) => s.setPhase);
+  const setSettings = useTimerStore((s) => s.setSettings);
 
-  const totalsByPhase: Record<Phase, number> = {
-    work: settings.workMin * 60 + settings.workSec,
-    'short-break': settings.shortMin * 60 + settings.shortSec,
-    'long-break': settings.longMin * 60 + settings.longSec,
-  };
-  const total = totalsByPhase[phase];
-  const remaining = total;
+  const total =
+    phase === 'work'
+      ? settings.workMin * 60 + settings.workSec
+      : phase === 'short-break'
+        ? settings.shortMin * 60 + settings.shortSec
+        : settings.longMin * 60 + settings.longSec;
+
+  useEffect(() => {
+    if (!running) return;
+    const id = window.setInterval(() => {
+      useTimerStore.getState().tick();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [running]);
+
+  const [terminalFeed, setTerminalFeed] = useState<ConsoleRow[]>(() => makeBootRows());
+  const lastLogLenRef = useRef(0);
+
+  useEffect(() => {
+    let timeoutId: number | undefined;
+    const scheduleNext = () => {
+      const delay = 1500 + Math.random() * 3500;
+      timeoutId = window.setTimeout(() => {
+        setTerminalFeed((feed) => [...feed, makeSystemRow()].slice(-30));
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
+    return () => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const lastLinkStatusRef = useRef(linkStatus);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLinkStatus((current) => pickNextLinkStatus(current));
+    }, 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setPingMs(randomPing());
+      setPingFlicker(true);
+    }, 4_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+
+  useEffect(() => {
+    if (lastLinkStatusRef.current === linkStatus) return;
+    lastLinkStatusRef.current = linkStatus;
+    setTerminalFeed((feed) =>
+      [
+        ...feed,
+        {
+          id: nextConsoleId++,
+          event: 'uplink status',
+          meta: linkStatusLabel[linkStatus].replace('UPLINK ', '').toLowerCase(),
+          tag: linkStatusTag[linkStatus],
+          tagColor: linkStatus,
+          time: formatHHMMSS(new Date()),
+        },
+      ].slice(-30),
+    );
+  }, [linkStatus]);
+
+  useEffect(() => {
+    if (sessionLog.length > lastLogLenRef.current) {
+      const newEntries = sessionLog.slice(lastLogLenRef.current);
+      setTerminalFeed((feed) =>
+        [
+          ...feed,
+          ...newEntries.map<ConsoleRow>((entry) => ({
+            id: nextConsoleId++,
+            event: eventVerbByPhase[entry.phase],
+            meta: formatDuration(entry.duration),
+            tag: phaseShortLabel[entry.phase],
+            tagColor: 'default',
+            time: entry.completedAt,
+          })),
+        ].slice(-30),
+      );
+    }
+    lastLogLenRef.current = sessionLog.length;
+  }, [sessionLog]);
+
+  const visibleRows = terminalFeed.slice(-5);
 
   const workSessions = sessionLog.filter((s) => s.phase === 'work');
   const focusedSeconds = workSessions.reduce((sum, s) => sum + s.duration, 0);
@@ -181,10 +316,6 @@ export function App() {
     setTheme(next);
     storeTheme(next);
     applyTheme(next);
-  };
-
-  const handleSettingsChange = (partial: Partial<Settings>) => {
-    setSettings((prev) => ({ ...prev, ...partial }));
   };
 
   const triggerGlitch = () => {
@@ -229,10 +360,6 @@ export function App() {
     }
   };
 
-  const handleLinkClick = () => {
-    setLinkStatus((current) => cycleLinkStatus(current));
-  };
-
   const randomizeSubnet = () => {
     setSubnetHex(randomHex4());
     setSubnetFlicker(true);
@@ -241,11 +368,6 @@ export function App() {
   const randomizeBuffer = () => {
     setBufferHex(randomHex4());
     setBufferFlicker(true);
-  };
-
-  const randomizePing = () => {
-    setPingMs(randomPing());
-    setPingFlicker(true);
   };
 
   return (
@@ -285,32 +407,44 @@ export function App() {
               </AnimatePresence>
             </button>
           </div>
-          <div className="hud-cluster hud-cluster--right">
-            <span className="hud-meta">SUBNET</span>
-            <button
-              type="button"
-              className="hud-value"
-              data-clickable="true"
-              data-flicker={subnetFlicker}
-              onClick={randomizeSubnet}
-              onAnimationEnd={() => setSubnetFlicker(false)}
-              aria-label="Regenerate subnet identifier"
-            >
-              0x{subnetHex}
-            </button>
-            <span className="hud-divider" aria-hidden>·</span>
-            <span className="hud-meta">SIGNAL</span>
-            <SignalBars level={signalLevelByStatus[linkStatus]} />
-            <span className="hud-divider" aria-hidden>·</span>
-            <button
-              type="button"
-              className="hud-status"
-              data-status={linkStatus}
-              onClick={handleLinkClick}
-              aria-label="Cycle uplink status"
-            >
-              {linkStatusLabel[linkStatus]}
-            </button>
+          <div className="hud-cluster-shell hud-cluster-shell--right">
+            <div className="hud-cluster-shell__slot">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={linkStatus}
+                  className="hud-cluster hud-cluster--right"
+                  initial={{ x: 16, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -16, opacity: 0 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <span className="hud-meta">SUBNET</span>
+                  <button
+                    type="button"
+                    className="hud-value"
+                    data-clickable="true"
+                    data-flicker={subnetFlicker}
+                    onClick={randomizeSubnet}
+                    onAnimationEnd={() => setSubnetFlicker(false)}
+                    aria-label="Regenerate subnet identifier"
+                  >
+                    0x{subnetHex}
+                  </button>
+                  <span className="hud-divider" aria-hidden>·</span>
+                  <span className="hud-meta">SIGNAL</span>
+                  <SignalBars level={signalLevelByStatus[linkStatus]} status={linkStatus} />
+                  <span className="hud-divider" aria-hidden>·</span>
+                  <span
+                    className="hud-status"
+                    data-status={linkStatus}
+                    aria-label={linkStatusLabel[linkStatus]}
+                    aria-live="polite"
+                  >
+                    <span className="hud-status__label">{linkStatusLabel[linkStatus]}</span>
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+            </div>
             <span className="hud-divider" aria-hidden>·</span>
             <button
               type="button"
@@ -351,7 +485,8 @@ export function App() {
           <div className="hud-annotation hud-annotation--top-right">
             <span className="hud-annotation__label">CYCLE</span>
             <span className="hud-annotation__value">
-              02 / {settings.sessionsPerCycle.toString().padStart(2, '0')}
+              {Math.min(sessionIndex, settings.sessionsPerCycle).toString().padStart(2, '0')} /{' '}
+              {settings.sessionsPerCycle.toString().padStart(2, '0')}
             </span>
             <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
@@ -372,36 +507,32 @@ export function App() {
           </div>
           <div className="hud-annotation hud-annotation--bottom-right">
             <span className="hud-annotation__label">PING</span>
-            <button
-              type="button"
+            <span
               className="hud-annotation__value"
-              data-clickable="true"
               data-flicker={pingFlicker}
-              onClick={randomizePing}
               onAnimationEnd={() => setPingFlicker(false)}
-              aria-label="Ping subnet"
             >
               {pingMs} ms
-            </button>
+            </span>
             <span className="hud-annotation__bracket" aria-hidden>◂</span>
           </div>
 
           <TimerPanel
             phase={phase}
-            remainingSeconds={remaining}
+            remainingSeconds={remainingSeconds}
             totalSeconds={total}
-            sessionIndex={2}
+            sessionIndex={sessionIndex}
             sessionsPerCycle={settings.sessionsPerCycle}
           />
 
           <TimerControls
             running={running}
-            onToggle={() => setRunning((v) => !v)}
-            onReset={() => setRunning(false)}
-            onSkip={() => setPhase(nextPhase)}
+            onToggle={toggle}
+            onReset={reset}
+            onSkip={skip}
           />
 
-          <CycleDots current={2} total={settings.sessionsPerCycle} />
+          <CycleDots current={sessionIndex} total={settings.sessionsPerCycle} phase={phase} />
 
           <div className="shell__phase-switch" role="group" aria-label="Phase preview">
             {phases.map((value) => {
@@ -436,13 +567,13 @@ export function App() {
         </section>
 
         <footer className="shell__hud-bottom">
-          <div className="hud-log" role="log" aria-label="Session history">
-            <AnimatePresence initial mode="popLayout">
-              {sessionLog.map((entry, i) => {
-                const isLast = i === sessionLog.length - 1;
+          <div className="hud-log" role="log" aria-label="System feed">
+            <AnimatePresence initial={false} mode="popLayout">
+              {visibleRows.map((row, i) => {
+                const isLast = i === visibleRows.length - 1;
                 return (
                   <motion.div
-                    key={entry.id}
+                    key={row.id}
                     layout
                     initial={{ opacity: 0, y: 14, filter: 'blur(3px)' }}
                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -451,12 +582,12 @@ export function App() {
                     className={`hud-log__row${isLast ? ' hud-log__row--active' : ''}`}
                   >
                     <span className="hud-log__prefix" aria-hidden>&gt;</span>
-                    <span className="hud-log__event">{eventVerbByPhase[entry.phase]}</span>
-                    <span className="hud-log__duration">{formatDuration(entry.duration)}</span>
-                    <span className="hud-log__phase" data-phase={entry.phase}>
-                      {phaseShortLabel[entry.phase]}
+                    <span className="hud-log__event">{row.event}</span>
+                    <span className="hud-log__duration">{row.meta}</span>
+                    <span className="hud-log__phase" data-phase={row.tagColor}>
+                      {row.tag}
                     </span>
-                    <span className="hud-log__time">{entry.completedAt}</span>
+                    <span className="hud-log__time">{row.time}</span>
                   </motion.div>
                 );
               })}
@@ -480,7 +611,7 @@ export function App() {
         settings={settings}
         theme={theme}
         onClose={() => setDrawerOpen(false)}
-        onSettingsChange={handleSettingsChange}
+        onSettingsChange={setSettings}
         onThemeChange={handleTheme}
         onPhaseFocus={setPhase}
       />

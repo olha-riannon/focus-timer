@@ -65,6 +65,17 @@
   gap: var(--space-3);
 }
 
+.hud-cluster-shell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hud-cluster-shell__slot {
+  display: inline-flex;
+  align-items: center;
+}
+
 .hud-brand {
   color: var(--accent);
   font-weight: var(--weight-semibold);
@@ -166,28 +177,46 @@
   transform: translateY(-3px);
 }
 
+.hud-signal {
+  --signal-color: var(--accent);
+}
+
+.hud-signal[data-status='excellent'] { --signal-color: var(--success); }
+.hud-signal[data-status='stable'] { --signal-color: var(--accent); }
+.hud-signal[data-status='degraded'] { --signal-color: var(--accent-tertiary); }
+.hud-signal[data-status='critical'] { --signal-color: var(--danger); }
+
 .hud-signal__bar {
   width: 3px;
   background: var(--border-default);
   transition:
-    background-color var(--duration-base) var(--ease-out),
-    box-shadow var(--duration-base) var(--ease-out);
+    background-color var(--duration-slower) var(--ease-out),
+    box-shadow var(--duration-slower) var(--ease-out);
 }
 
 .hud-signal__bar[data-active='true'] {
-  background: var(--accent);
-  box-shadow: 0 0 4px color-mix(in srgb, var(--accent) 80%, transparent);
+  background: var(--signal-color);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--signal-color) 80%, transparent);
 }
 
 .hud-status {
-  --status-color: var(--success);
+  --status-color: var(--accent);
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 17ch;
   padding-left: var(--space-4);
   color: var(--status-color);
+  font-weight: var(--weight-bold);
   letter-spacing: var(--letter-wider);
   text-transform: uppercase;
   user-select: none;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-slower) var(--ease-out);
+}
+
+.hud-status__label {
+  display: inline-block;
 }
 
 .hud-status::before {
@@ -203,13 +232,14 @@
   box-shadow: 0 0 6px var(--status-color);
   animation: hud-pulse var(--duration-slowest) var(--ease-in-out) infinite;
   transition:
-    background-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    background-color var(--duration-slower) var(--ease-out),
+    box-shadow var(--duration-slower) var(--ease-out);
 }
 
-.hud-status[data-status='excellent'] { --status-color: var(--phase-work); }
+.hud-status[data-status='excellent'] { --status-color: var(--success); }
+.hud-status[data-status='stable'] { --status-color: var(--accent); }
 .hud-status[data-status='degraded'] { --status-color: var(--accent-tertiary); }
-.hud-status[data-status='calibrating'] { --status-color: var(--accent-secondary); }
+.hud-status[data-status='critical'] { --status-color: var(--danger); }
 
 .hud-icon-button {
   display: inline-flex;
@@ -576,15 +606,16 @@
   flex-direction: column;
   gap: var(--space-1);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--fg-tertiary);
   min-width: 280px;
 }
 
 .hud-log__row {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1ch 22ch 14ch 7ch 1fr;
+  gap: var(--space-3);
   align-items: center;
-  gap: var(--space-2);
 }
 
 .hud-log__prefix {
@@ -593,29 +624,27 @@
 }
 
 .hud-log__event {
-  min-width: 22ch;
   color: var(--fg-secondary);
 }
 
 .hud-log__duration {
-  min-width: 5ch;
   color: var(--fg-tertiary);
   font-variant-numeric: tabular-nums;
 }
 
 .hud-log__phase {
-  min-width: 5ch;
-  font-weight: var(--weight-semibold);
   letter-spacing: var(--letter-widest);
   text-transform: uppercase;
 }
 
-.hud-log__phase[data-phase='work'] { color: var(--phase-work); }
-.hud-log__phase[data-phase='short-break'] { color: var(--accent-tertiary); }
-.hud-log__phase[data-phase='long-break'] { color: var(--phase-cold-cycle); }
+.hud-log__phase { color: var(--fg-tertiary); }
+.hud-log__phase[data-phase='excellent'] { color: var(--success); }
+.hud-log__phase[data-phase='stable'] { color: var(--accent); }
+.hud-log__phase[data-phase='degraded'] { color: var(--accent-tertiary); }
+.hud-log__phase[data-phase='critical'] { color: var(--danger); }
 
 .hud-log__time {
-  margin-left: auto;
+  text-align: right;
   color: var(--fg-disabled);
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
@@ -624,6 +653,7 @@
 .hud-log__row--active .hud-log__event {
   color: var(--fg-primary);
 }
+
 
 /* — Today's focus stats — footer right — */
 .hud-stats {

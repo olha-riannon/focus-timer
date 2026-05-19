@@ -3,18 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { Theme } from '../tokens/theme.ts';
 import type { Phase } from './TimerPanel.tsx';
+import type { Settings } from '../store/timerStore.ts';
 import './SettingsDrawer.css';
 
-export interface Settings {
-  workMin: number;
-  workSec: number;
-  shortMin: number;
-  shortSec: number;
-  longMin: number;
-  longSec: number;
-  sessionsPerCycle: number;
-  soundEnabled: boolean;
-}
+export type { Settings };
 
 interface SettingsDrawerProps {
   open: boolean;

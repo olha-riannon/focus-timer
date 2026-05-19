@@ -16,27 +16,34 @@ const phaseLabel: Record<Phase, string> = {
   'long-break': 'cold cycle',
 };
 
-type LinkStatus = 'stable' | 'excellent' | 'degraded' | 'calibrating';
+type LinkStatus = 'excellent' | 'stable' | 'degraded' | 'critical';
 
-const linkStatusOrder: LinkStatus[] = ['stable', 'excellent', 'degraded', 'calibrating'];
+const linkStatusPool: LinkStatus[] = ['excellent', 'stable', 'degraded', 'critical'];
 
 const linkStatusLabel: Record<LinkStatus, string> = {
-  stable: 'UPLINK STABLE',
   excellent: 'UPLINK EXCELLENT',
+  stable: 'UPLINK STABLE',
   degraded: 'UPLINK DEGRADED',
-  calibrating: 'UPLINK CALIBRATING',
+  critical: 'UPLINK CRITICAL',
 };
 
 const signalLevelByStatus: Record<LinkStatus, number> = {
-  stable: 4,
   excellent: 5,
+  stable: 4,
   degraded: 2,
-  calibrating: 3,
+  critical: 1,
 };
 
-const cycleLinkStatus = (current: LinkStatus): LinkStatus => {
-  const i = linkStatusOrder.indexOf(current);
-  return linkStatusOrder[(i + 1) % linkStatusOrder.length] ?? 'stable';
+const linkStatusTag: Record<LinkStatus, string> = {
+  excellent: 'EXCL',
+  stable: 'STBL',
+  degraded: 'DEGR',
+  critical: 'CRIT',
+};
+
+const pickNextLinkStatus = (current: LinkStatus): LinkStatus => {
+  const others = linkStatusPool.filter((s) => s !== current);
+  return others[Math.floor(Math.random() * others.length)] ?? current;
 };
 
 const eventVerbByPhase: Record<Phase, string> = {
@@ -82,7 +89,7 @@ interface ConsoleRow {
   event: string;
   meta: string;
   tag: string;
-  tagColor: 'work' | 'short-break' | 'long-break' | 'ok' | 'info' | 'muted';
+  tagColor: 'default' | 'excellent' | 'stable' | 'degraded' | 'critical';
   time: string;
 }
 
@@ -94,22 +101,22 @@ interface SystemTemplate {
 }
 
 const SYSTEM_TEMPLATES: SystemTemplate[] = [
-  { event: 'packet trace', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
-  { event: 'memory scan', meta: () => 'no anomalies', tag: 'OK', tagColor: 'ok' },
-  { event: 'ping subnet', meta: () => `${randomPing()} ms`, tag: 'INFO', tagColor: 'info' },
-  { event: 'buffer flush', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
-  { event: 'core load', meta: () => `${30 + Math.floor(Math.random() * 60)}%`, tag: 'INFO', tagColor: 'info' },
-  { event: 'neural bandwidth', meta: () => `${70 + Math.floor(Math.random() * 30)}%`, tag: 'INFO', tagColor: 'info' },
-  { event: 'auth refresh', meta: () => 'token cycled', tag: 'OK', tagColor: 'ok' },
-  { event: 'thermal read', meta: () => `${38 + Math.floor(Math.random() * 8)} C`, tag: 'INFO', tagColor: 'info' },
-  { event: 'ice signature', meta: () => 'clean', tag: 'OK', tagColor: 'ok' },
-  { event: 'sync protocol', meta: () => 'stable', tag: 'OK', tagColor: 'ok' },
-  { event: 'decrypt shard', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'ok' },
-  { event: 'node discovery', meta: () => `0x${randomHex4()}`, tag: 'INFO', tagColor: 'info' },
-  { event: 'vpn tunnel', meta: () => 'encrypted', tag: 'OK', tagColor: 'ok' },
-  { event: 'subnet scan', meta: () => `${4 + Math.floor(Math.random() * 12)} hosts`, tag: 'INFO', tagColor: 'info' },
-  { event: 'process kill', meta: () => `pid ${1000 + Math.floor(Math.random() * 8999)}`, tag: 'OK', tagColor: 'ok' },
-  { event: 'cache purge', meta: () => `${10 + Math.floor(Math.random() * 90)} kb`, tag: 'OK', tagColor: 'ok' },
+  { event: 'packet trace', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'memory scan', meta: () => 'no anomalies', tag: 'OK', tagColor: 'default'},
+  { event: 'ping subnet', meta: () => `${randomPing()} ms`, tag: 'INFO', tagColor: 'default'},
+  { event: 'buffer flush', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'core load', meta: () => `${30 + Math.floor(Math.random() * 60)}%`, tag: 'INFO', tagColor: 'default'},
+  { event: 'neural bandwidth', meta: () => `${70 + Math.floor(Math.random() * 30)}%`, tag: 'INFO', tagColor: 'default'},
+  { event: 'auth refresh', meta: () => 'token cycled', tag: 'OK', tagColor: 'default'},
+  { event: 'thermal read', meta: () => `${38 + Math.floor(Math.random() * 8)} C`, tag: 'INFO', tagColor: 'default'},
+  { event: 'ice signature', meta: () => 'clean', tag: 'OK', tagColor: 'default'},
+  { event: 'sync protocol', meta: () => 'stable', tag: 'OK', tagColor: 'default'},
+  { event: 'decrypt shard', meta: () => `0x${randomHex4()}`, tag: 'OK', tagColor: 'default'},
+  { event: 'node discovery', meta: () => `0x${randomHex4()}`, tag: 'INFO', tagColor: 'default'},
+  { event: 'vpn tunnel', meta: () => 'encrypted', tag: 'OK', tagColor: 'default'},
+  { event: 'subnet scan', meta: () => `${4 + Math.floor(Math.random() * 12)} hosts`, tag: 'INFO', tagColor: 'default'},
+  { event: 'process kill', meta: () => `pid ${1000 + Math.floor(Math.random() * 8999)}`, tag: 'OK', tagColor: 'default'},
+  { event: 'cache purge', meta: () => `${10 + Math.floor(Math.random() * 90)} kb`, tag: 'OK', tagColor: 'default'},
 ];
 
 let nextConsoleId = 1;
@@ -130,11 +137,11 @@ function makeBootRows(): ConsoleRow[] {
   const now = new Date();
   const t = formatHHMMSS(now);
   return [
-    { id: nextConsoleId++, event: 'kernel boot', meta: '4 modules', tag: 'OK', tagColor: 'ok', time: t },
-    { id: nextConsoleId++, event: 'uplink handshake', meta: `0x${randomHex4()}`, tag: 'STABLE', tagColor: 'ok', time: t },
-    { id: nextConsoleId++, event: 'ice signature', meta: 'clean', tag: 'OK', tagColor: 'ok', time: t },
-    { id: nextConsoleId++, event: 'core load', meta: '47%', tag: 'INFO', tagColor: 'info', time: t },
-    { id: nextConsoleId++, event: 'neural bandwidth', meta: '89%', tag: 'INFO', tagColor: 'info', time: t },
+    { id: nextConsoleId++, event: 'kernel boot', meta: '4 modules', tag: 'OK', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'uplink handshake', meta: `0x${randomHex4()}`, tag: 'STABLE', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'ice signature', meta: 'clean', tag: 'OK', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'core load', meta: '47%', tag: 'INFO', tagColor: 'default', time: t },
+    { id: nextConsoleId++, event: 'neural bandwidth', meta: '89%', tag: 'INFO', tagColor: 'default', time: t },
   ];
 }
 
@@ -145,9 +152,9 @@ const VERSION_SWAP_MS = 500;
 const VERSION_TOTAL_MS = 1000;
 const VERSION_TRANSITION_S = 0.25;
 
-function SignalBars({ level }: { level: number }) {
+function SignalBars({ level, status }: { level: number; status: LinkStatus }) {
   return (
-    <span className="hud-signal" aria-hidden>
+    <span className="hud-signal" data-status={status} aria-hidden>
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
@@ -245,6 +252,32 @@ export function App() {
     };
   }, []);
 
+  const lastLinkStatusRef = useRef(linkStatus);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLinkStatus((current) => pickNextLinkStatus(current));
+    }, 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (lastLinkStatusRef.current === linkStatus) return;
+    lastLinkStatusRef.current = linkStatus;
+    setTerminalFeed((feed) =>
+      [
+        ...feed,
+        {
+          id: nextConsoleId++,
+          event: 'uplink status',
+          meta: linkStatusLabel[linkStatus].replace('UPLINK ', '').toLowerCase(),
+          tag: linkStatusTag[linkStatus],
+          tagColor: linkStatus,
+          time: formatHHMMSS(new Date()),
+        },
+      ].slice(-30),
+    );
+  }, [linkStatus]);
+
   useEffect(() => {
     if (sessionLog.length > lastLogLenRef.current) {
       const newEntries = sessionLog.slice(lastLogLenRef.current);
@@ -256,7 +289,7 @@ export function App() {
             event: eventVerbByPhase[entry.phase],
             meta: formatDuration(entry.duration),
             tag: phaseShortLabel[entry.phase],
-            tagColor: entry.phase,
+            tagColor: 'default',
             time: entry.completedAt,
           })),
         ].slice(-30),
@@ -318,10 +351,6 @@ export function App() {
     }
   };
 
-  const handleLinkClick = () => {
-    setLinkStatus((current) => cycleLinkStatus(current));
-  };
-
   const randomizeSubnet = () => {
     setSubnetHex(randomHex4());
     setSubnetFlicker(true);
@@ -374,32 +403,44 @@ export function App() {
               </AnimatePresence>
             </button>
           </div>
-          <div className="hud-cluster hud-cluster--right">
-            <span className="hud-meta">SUBNET</span>
-            <button
-              type="button"
-              className="hud-value"
-              data-clickable="true"
-              data-flicker={subnetFlicker}
-              onClick={randomizeSubnet}
-              onAnimationEnd={() => setSubnetFlicker(false)}
-              aria-label="Regenerate subnet identifier"
-            >
-              0x{subnetHex}
-            </button>
-            <span className="hud-divider" aria-hidden>·</span>
-            <span className="hud-meta">SIGNAL</span>
-            <SignalBars level={signalLevelByStatus[linkStatus]} />
-            <span className="hud-divider" aria-hidden>·</span>
-            <button
-              type="button"
-              className="hud-status"
-              data-status={linkStatus}
-              onClick={handleLinkClick}
-              aria-label="Cycle uplink status"
-            >
-              {linkStatusLabel[linkStatus]}
-            </button>
+          <div className="hud-cluster-shell hud-cluster-shell--right">
+            <div className="hud-cluster-shell__slot">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={linkStatus}
+                  className="hud-cluster hud-cluster--right"
+                  initial={{ x: 16, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -16, opacity: 0 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <span className="hud-meta">SUBNET</span>
+                  <button
+                    type="button"
+                    className="hud-value"
+                    data-clickable="true"
+                    data-flicker={subnetFlicker}
+                    onClick={randomizeSubnet}
+                    onAnimationEnd={() => setSubnetFlicker(false)}
+                    aria-label="Regenerate subnet identifier"
+                  >
+                    0x{subnetHex}
+                  </button>
+                  <span className="hud-divider" aria-hidden>·</span>
+                  <span className="hud-meta">SIGNAL</span>
+                  <SignalBars level={signalLevelByStatus[linkStatus]} status={linkStatus} />
+                  <span className="hud-divider" aria-hidden>·</span>
+                  <span
+                    className="hud-status"
+                    data-status={linkStatus}
+                    aria-label={linkStatusLabel[linkStatus]}
+                    aria-live="polite"
+                  >
+                    <span className="hud-status__label">{linkStatusLabel[linkStatus]}</span>
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+            </div>
             <span className="hud-divider" aria-hidden>·</span>
             <button
               type="button"
